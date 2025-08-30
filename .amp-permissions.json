@@ -1,0 +1,69 @@
+{
+  "allowedCommands": [
+    "npm install",
+    "npm run dev",
+    "npm run build",
+    "npm start",
+    "npm test",
+    "npm run test:watch",
+    "npm run test:coverage",
+    "npm run test:integration",
+    "npm run lint",
+    "npm run lint:fix",
+    "npm run type-check",
+    "npm run db:migrate",
+    "npm run db:seed",
+    "npm run db:reset",
+    "yarn install",
+    "yarn dev",
+    "yarn build",
+    "yarn start",
+    "yarn test",
+    "yarn lint",
+    "make install",
+    "make dev",
+    "make build",
+    "make test",
+    "make lint",
+    "make clean",
+    "docker build",
+    "docker run",
+    "docker-compose up",
+    "docker-compose down",
+    "git add",
+    "git commit",
+    "git push",
+    "git pull",
+    "git status",
+    "git log",
+    "git diff"
+  ],
+  "blockedCommands": [
+    "rm -rf",
+    "sudo",
+    "chmod 777",
+    "dd",
+    "mkfs"
+  ],
+  "allowedPaths": [
+    "/Users/joelhorwitz/dev/ai-adwords",
+    "/Users/joelhorwitz/dev/ai-adwords/**"
+  ],
+  "amp.permissions": [
+    { "tool": "Bash", "matches": { "cmd": "git status" }, "action": "allow" },
+    { "tool": "Bash", "matches": { "cmd": "git diff*" }, "action": "allow" },
+    { "tool": "Bash", "matches": { "cmd": "git commit*" }, "action": "ask" },
+    { "tool": "Bash", "matches": { "cmd": "git push*" }, "action": "reject" },
+
+    { "tool": "Bash", "matches": { "cmd": "make setup" }, "action": "allow" },
+    { "tool": "Bash", "matches": { "cmd": "make check" }, "action": "allow" },
+    { "tool": "Bash", "matches": { "cmd": "make test" }, "action": "allow" },
+    { "tool": "Bash", "matches": { "cmd": "make e2e-validate" }, "action": "allow" },
+
+    { "tool": "Bash", "matches": { "cmd": "*python *" }, "action": "ask" },
+    { "tool": "Bash", "matches": { "cmd": "*poetry *" }, "action": "ask" },
+
+    { "tool": "mcp__*", "action": "ask" },
+    { "tool": "*", "action": "reject" }
+  ]
+}
