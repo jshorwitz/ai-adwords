@@ -206,6 +206,10 @@ def create_bigquery_client_from_env() -> BigQueryClient:
         project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
         dataset_id = os.getenv("BIGQUERY_DATASET_ID", "google_ads_data")
         credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        
+        # Don't use credentials file if it doesn't exist
+        if credentials_path and not os.path.exists(credentials_path):
+            credentials_path = None
     
     if not project_id:
         raise ValueError("GOOGLE_CLOUD_PROJECT environment variable required")
