@@ -198,43 +198,20 @@ def create_bigquery_client_from_env() -> BigQueryClient:
     load_dotenv()
     
     # Check if we're in Streamlit Cloud environment
-    if hasattr(st, 'secrets'):
-        try:
-            project_id = st.secrets["GOOGLE_CLOUD_PROJECT"]
-            dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "google_ads_data")
-            
-            # Use individual credential secrets (avoids JSON parsing issues)
-            required_keys = ["private_key", "client_email", "private_key_id", "client_id"]
-            if all(key in st.secrets for key in required_keys):
-                creds_info = {
-                    "type": "service_account",
-                    "project_id": project_id,
-                    "private_key_id": st.secrets["private_key_id"],
-                    "private_key": st.secrets["private_key"].replace("\\n", "\n"),
-                    "client_email": st.secrets["client_email"],
-                    "client_id": st.secrets["client_id"],
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "token_uri": "https://oauth2.googleapis.com/token",
-                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs"
-                }
-                
-                credentials = service_account.Credentials.from_service_account_info(
-                    creds_info,
-                    scopes=["https://www.googleapis.com/auth/bigquery"]
-                )
-                client = bigquery.Client(credentials=credentials, project=project_id)
-                
-                # Create custom BigQuery client
-                bq_client = BigQueryClient.__new__(BigQueryClient)
-                bq_client.project_id = project_id
-                bq_client.dataset_id = dataset_id
-                bq_client.client = client
-                bq_client.dataset_ref = client.dataset(dataset_id)
-                return bq_client
-            else:
-                raise ValueError(f"Missing required secrets: {[k for k in required_keys if k not in st.secrets]}")
-        except Exception as e:
-            raise ValueError(f"Failed to load Streamlit secrets: {e}")
+    if hasattr(st, 'secrets') and "GOOGLE_CLOUD_PROJECT" in st.secrets:
+        project_id = st.secrets["GOOGLE_CLOUD_PROJECT"]
+        dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "google_ads_data")
+        
+        # Use public dataset (no authentication needed)
+        client = bigquery.Client(project=project_id)
+        
+        # Create custom BigQuery client
+        bq_client = BigQueryClient.__new__(BigQueryClient)
+        bq_client.project_id = project_id
+        bq_client.dataset_id = dataset_id
+        bq_client.client = client
+        bq_client.dataset_ref = client.dataset(dataset_id)
+        return bq_client
     
     # Local development fallback
     project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
