@@ -192,6 +192,7 @@ def create_bigquery_client_from_env() -> BigQueryClient:
     """Create BigQuery client from environment variables."""
     import streamlit as st
     from dotenv import load_dotenv
+    import json
     
     # Load environment variables from .env file (for local dev)
     load_dotenv()
@@ -200,7 +201,26 @@ def create_bigquery_client_from_env() -> BigQueryClient:
     try:
         project_id = st.secrets["GOOGLE_CLOUD_PROJECT"]
         dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "google_ads_data")
-        credentials_path = None  # Use default credentials in cloud
+        
+        # Use JSON credentials from secrets
+        if "GOOGLE_APPLICATION_CREDENTIALS_JSON" in st.secrets:
+            creds_json = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+            credentials = service_account.Credentials.from_service_account_info(
+                creds_json,
+                scopes=["https://www.googleapis.com/auth/bigquery"]
+            )
+            client = bigquery.Client(credentials=credentials, project=project_id)
+            
+            # Create custom BigQuery client
+            bq_client = BigQueryClient.__new__(BigQueryClient)
+            bq_client.project_id = project_id
+            bq_client.dataset_id = dataset_id
+            bq_client.client = client
+            bq_client.dataset_ref = client.dataset(dataset_id)
+            return bq_client
+        else:
+            credentials_path = None
+            
     except:
         # Fall back to environment variables (for local dev)
         project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
