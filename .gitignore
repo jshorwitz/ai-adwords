@@ -36,6 +36,8 @@ build/
 config/secrets.json
 *.key
 *.pem
+*service-account*.json
+bq-service-account.json
 
 # Database
 *.db

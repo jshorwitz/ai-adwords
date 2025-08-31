@@ -1,4 +1,4 @@
-.PHONY: install dev build test lint clean help
+.PHONY: install dev build test lint clean help dashboard
 
 # Default target
 help:
@@ -10,6 +10,7 @@ help:
 	@echo "  lint        - Run linter"
 	@echo "  clean       - Clean build artifacts"
 	@echo "  setup       - Initial project setup"
+	@echo "  dashboard   - Start Streamlit dashboard"
 
 # Install dependencies
 install:
@@ -105,3 +106,7 @@ deploy:
 	npm run build
 	npm run db:migrate
 	npm start
+
+# Start Streamlit dashboard
+dashboard:
+	PYTHONPATH=/Users/joelhorwitz/dev/ai-adwords poetry run streamlit run src/dashboard/app.py
