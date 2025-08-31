@@ -197,39 +197,41 @@ def create_bigquery_client_from_env() -> BigQueryClient:
     # Load environment variables from .env file (for local dev)
     load_dotenv()
     
-    # Try Streamlit secrets first (for cloud deployment)
-    try:
-        project_id = st.secrets["GOOGLE_CLOUD_PROJECT"]
-        dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "google_ads_data")
-        
-        # Use JSON credentials from secrets
-        if "GOOGLE_APPLICATION_CREDENTIALS_JSON" in st.secrets:
-            creds_json = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
-            credentials = service_account.Credentials.from_service_account_info(
-                creds_json,
-                scopes=["https://www.googleapis.com/auth/bigquery"]
-            )
-            client = bigquery.Client(credentials=credentials, project=project_id)
+    # Check if we're in Streamlit Cloud environment
+    if hasattr(st, 'secrets'):
+        try:
+            project_id = st.secrets["GOOGLE_CLOUD_PROJECT"]
+            dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "google_ads_data")
             
-            # Create custom BigQuery client
-            bq_client = BigQueryClient.__new__(BigQueryClient)
-            bq_client.project_id = project_id
-            bq_client.dataset_id = dataset_id
-            bq_client.client = client
-            bq_client.dataset_ref = client.dataset(dataset_id)
-            return bq_client
-        else:
-            credentials_path = None
-            
-    except:
-        # Fall back to environment variables (for local dev)
-        project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
-        dataset_id = os.getenv("BIGQUERY_DATASET_ID", "google_ads_data")
-        credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-        
-        # Don't use credentials file if it doesn't exist
-        if credentials_path and not os.path.exists(credentials_path):
-            credentials_path = None
+            # Use JSON credentials from secrets (required for Streamlit Cloud)
+            if "GOOGLE_APPLICATION_CREDENTIALS_JSON" in st.secrets:
+                creds_json = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+                credentials = service_account.Credentials.from_service_account_info(
+                    creds_json,
+                    scopes=["https://www.googleapis.com/auth/bigquery"]
+                )
+                client = bigquery.Client(credentials=credentials, project=project_id)
+                
+                # Create custom BigQuery client
+                bq_client = BigQueryClient.__new__(BigQueryClient)
+                bq_client.project_id = project_id
+                bq_client.dataset_id = dataset_id
+                bq_client.client = client
+                bq_client.dataset_ref = client.dataset(dataset_id)
+                return bq_client
+            else:
+                raise ValueError("GOOGLE_APPLICATION_CREDENTIALS_JSON secret required for Streamlit Cloud")
+        except Exception as e:
+            raise ValueError(f"Failed to load Streamlit secrets: {e}")
+    
+    # Local development fallback
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+    dataset_id = os.getenv("BIGQUERY_DATASET_ID", "google_ads_data")
+    credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    
+    # Don't use credentials file if it doesn't exist
+    if credentials_path and not os.path.exists(credentials_path):
+        credentials_path = None
     
     if not project_id:
         raise ValueError("GOOGLE_CLOUD_PROJECT environment variable required")
