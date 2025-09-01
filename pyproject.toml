@@ -2,13 +2,13 @@
 name = "ai-adwords"
 version = "0.1.0"
 description = "AI-powered Google Ads management application"
-authors = ["Joel Horwitz <joel@example.com>"]
+authors = ["Joel Horwitz <joel@neoteric3d.com>"]
 readme = "README.md"
 packages = [{include = "ads", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
-google-ads = "^24.1.0"
+google-ads = "^28.0.0"
 google-cloud-bigquery = "^3.12.0"
 pandas = "^2.1.0"
 db-dtypes = "^1.2.0"
