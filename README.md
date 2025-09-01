@@ -24,5 +24,17 @@ ADS_USE_MOCK=1 poetry run python -m src.cli campaigns --customer-id 1234567890 -
 
 - Reporting demo data (historical metrics): set `ADS_USE_DEMO=1` to have reporting return generated sample datasets.
 
+- List keywords (mocked data):
+
+```bash
+ADS_USE_MOCK=1 poetry run python -m src.cli keywords --customer-id 1234567890 --limit 10
+```
+
+- List accessible accounts (mocked):
+
+```bash
+ADS_USE_MOCK=1 poetry run python -m src.cli accounts
+```
+
 When ready to hit the real API, unset `ADS_USE_MOCK` and provide credentials via `.env` (see `.env.template`).
 
