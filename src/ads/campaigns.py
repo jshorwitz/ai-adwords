@@ -96,3 +96,107 @@ class CampaignManager:
     def add_negative_keywords(self) -> None:
         """Add negative keywords."""
         pass
+
+
+def create_campaign(
+    customer_id: str,
+    name: str,
+    daily_budget_micros: int,
+    channel: str = "SEARCH",
+    bidding_strategy: str = "MAXIMIZE_CONVERSIONS",
+    start_date: str | None = None,
+    end_date: str | None = None,
+    dry_run: bool = True,
+) -> dict[str, str | int | bool]:
+    """Create a campaign or perform a dry-run validation.
+
+    - In mock mode (ADS_USE_MOCK=1) always returns a simulated success.
+    - In real mode, creates a CampaignBudget then a Campaign. When dry_run=True,
+      calls the API with validate_only=True so nothing is changed.
+
+    Returns a dict with keys: status, budget_resource_name, campaign_resource_name.
+    """
+    import os
+    from datetime import datetime
+
+    if os.getenv("ADS_USE_MOCK") == "1":
+        return {
+            "status": "VALIDATION_PASSED",
+            "budget_resource_name": f"customers/{customer_id}/campaignBudgets/9999999999",
+            "campaign_resource_name": f"customers/{customer_id}/campaigns/8888888888",
+            "dry_run": True,
+        }
+
+    # Real API path
+    service = create_client_from_env()
+    client = service.client
+
+    # 1) Create budget
+    budget_svc = client.get_service("CampaignBudgetService")
+    budget_op = client.get_type("CampaignBudgetOperation")
+    budget = budget_op.create
+    budget.name = f"{name} Budget {datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    budget.amount_micros = int(daily_budget_micros)
+    budget.delivery_method = client.enums.BudgetDeliveryMethodEnum.STANDARD
+    budget.explicitly_shared = False
+
+    budget_resp = budget_svc.mutate_campaign_budgets(
+        customer_id=customer_id,
+        operations=[budget_op],
+        partial_failure=True,
+        validate_only=dry_run,
+    )
+
+    budget_rn = (
+        budget_resp.results[0].resource_name if not dry_run else f"customers/{customer_id}/campaignBudgets/placeholder"
+    )
+
+    # 2) Create campaign
+    campaign_svc = client.get_service("CampaignService")
+    camp_op = client.get_type("CampaignOperation")
+    camp = camp_op.create
+    camp.name = name
+    camp.status = client.enums.CampaignStatusEnum.PAUSED
+    camp.advertising_channel_type = getattr(
+        client.enums.AdvertisingChannelTypeEnum, channel, client.enums.AdvertisingChannelTypeEnum.SEARCH
+    )
+    camp.campaign_budget = budget_rn
+
+    # Bidding strategy
+    if bidding_strategy.upper() == "MAXIMIZE_CONVERSIONS":
+        camp.maximize_conversions.CopyFrom(client.get_type("MaximizeConversions"))
+    elif bidding_strategy.upper() == "MAXIMIZE_CONVERSION_VALUE":
+        camp.maximize_conversion_value.CopyFrom(client.get_type("MaximizeConversionValue"))
+    elif bidding_strategy.upper() == "MANUAL_CPC":
+        camp.manual_cpc.CopyFrom(client.get_type("ManualCpc"))
+
+    # Dates (YYYY-MM-DD)
+    if start_date:
+        camp.start_date = start_date
+    if end_date:
+        camp.end_date = end_date
+
+    # Simple network settings for SEARCH
+    if channel.upper() == "SEARCH":
+        camp.network_settings.target_google_search = True
+        camp.network_settings.target_search_network = True
+        camp.network_settings.target_partner_search_network = False
+
+    camp_resp = campaign_svc.mutate_campaigns(
+        customer_id=customer_id,
+        operations=[camp_op],
+        partial_failure=True,
+        validate_only=dry_run,
+    )
+
+    camp_rn = (
+        camp_resp.results[0].resource_name if not dry_run else f"customers/{customer_id}/campaigns/placeholder"
+    )
+
+    return {
+        "status": "VALIDATION_PASSED" if dry_run else "CREATED",
+        "budget_resource_name": budget_rn,
+        "campaign_resource_name": camp_rn,
+        "dry_run": dry_run,
+    }
+

@@ -1,5 +1,6 @@
 """CLI interface using Typer for Google Ads operations."""
 
+from typing import Optional
 import typer
 
 from src.ads.accounts import list_accessible_clients
@@ -165,9 +166,17 @@ def test_report(
 
 
 @app.command()
+
 def campaigns(
     customer_id: str = typer.Option(..., help="Google Ads customer ID"),
     action: str = typer.Option("list", help="Action: list, create, update"),
+    name: Optional[str] = typer.Option(None, help="Campaign name (for create)"),
+    budget: Optional[float] = typer.Option(None, help="Daily budget in dollars (for create)"),
+    channel: str = typer.Option("SEARCH", help="Channel for create: SEARCH|DISPLAY|VIDEO"),
+    bidding: str = typer.Option("MAXIMIZE_CONVERSIONS", help="Bidding for create: MAXIMIZE_CONVERSIONS|MAXIMIZE_CONVERSION_VALUE|MANUAL_CPC"),
+    start_date: Optional[str] = typer.Option(None, help="YYYY-MM-DD (optional)"),
+    end_date: Optional[str] = typer.Option(None, help="YYYY-MM-DD (optional)"),
+    dry_run: bool = typer.Option(True, help="validate_only for create"),
 ) -> None:
     """Manage campaigns."""
     if action == "list":
@@ -182,6 +191,32 @@ def campaigns(
         print("-" * 60)
         for r in rows:
             print(f"{r['id']:<15} {r['status']:<12} {r['name']}")
+        return
+
+    if action == "create":
+        from src.ads.campaigns import create_campaign
+        if not name:
+            name = typer.prompt("Campaign name")
+        if budget is None:
+            budget = typer.prompt("Daily budget ($)", type=float)
+        budget_micros = int(float(budget) * 1_000_000)
+        # If start/end provided as empty strings, normalize to None
+        start_date_val = start_date or None
+        end_date_val = end_date or None
+
+        resp = create_campaign(
+            customer_id=customer_id,
+            name=name,
+            daily_budget_micros=budget_micros,
+            channel=channel,
+            bidding_strategy=bidding,
+            start_date=start_date_val,
+            end_date=end_date_val,
+            dry_run=dry_run,
+        )
+        print("\nResult:")
+        for k, v in resp.items():
+            print(f"- {k}: {v}")
         return
 
     print(f"Unsupported action: {action}")
