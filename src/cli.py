@@ -188,6 +188,27 @@ def campaigns(
 
 
 @app.command()
+def keywords(
+    customer_id: str = typer.Option(..., help="Google Ads customer ID"),
+    limit: int = typer.Option(20, help="Max rows to return"),
+) -> None:
+    """List top keywords by impressions."""
+    from src.ads.keywords import list_keywords
+
+    rows = list_keywords(customer_id, limit)
+    if not rows:
+        print("No keywords found or unable to fetch keywords.")
+        return
+
+    print(f"Top {len(rows)} keywords:\n")
+    print(f"{'IMP':>6} {'CLK':>6} {'AVG_CPC':>8}  KEYWORD [MATCH] (CAMP/ADG)")
+    print("-" * 80)
+    for r in rows:
+        avg_cpc = f"${r.get('avg_cpc', 0):.2f}"
+        print(f"{r['impressions']:>6} {r['clicks']:>6} {avg_cpc:>8}  {r['keyword']} [{r['match_type']}] ({r['campaign_id']}/{r['ad_group_id']})")
+
+
+@app.command()
 def reports(
     customer_id: str = typer.Option(..., help="Google Ads customer ID"),
     report_type: str = typer.Option("campaign", help="Report type"),
