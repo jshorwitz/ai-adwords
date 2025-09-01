@@ -12,4 +12,17 @@ An intelligent application for monitoring Google AdWords performance, making dat
 TBD
 
 ## Usage
-TBD
+
+### Mock mode (no Google Ads access required)
+Use mock mode to develop and demo flows without API keys or approval:
+
+- List campaigns (mocked data):
+
+```bash
+ADS_USE_MOCK=1 poetry run python -m src.cli campaigns --customer-id 1234567890 --action list
+```
+
+- Reporting demo data (historical metrics): set `ADS_USE_DEMO=1` to have reporting return generated sample datasets.
+
+When ready to hit the real API, unset `ADS_USE_MOCK` and provide credentials via `.env` (see `.env.template`).
+
