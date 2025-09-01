@@ -14,6 +14,37 @@ from google.api_core.exceptions import GoogleAPICallError, RetryError
 logger = logging.getLogger(__name__)
 
 
+class _MockGoogleAdsClient:
+    """Very small mock of Google Ads client for local mock mode.
+
+    Provides just enough surface for list-accessible customers and for code that reads
+    `login_customer_id` and `get_service(...)`.
+    """
+
+    def __init__(self, login_customer_id: str | None = None):
+        self.login_customer_id = login_customer_id or "0000000000"
+
+    def get_service(self, name: str):
+        if name == "CustomerService":
+            class _CustomerService:
+                def list_accessible_customers(self):
+                    class _Resp:
+                        resource_names = [
+                            "customers/1234567890",
+                            "customers/2345678901",
+                        ]
+                    return _Resp()
+            return _CustomerService()
+        if name == "GoogleAdsService":
+            class _GoogleAdsService:
+                def search_stream(self, request=None):
+                    return []
+                def search(self, customer_id=None, query=None):
+                    return []
+            return _GoogleAdsService()
+        raise ValueError(f"Unsupported mock service: {name}")
+
+
 class GoogleAdsClientFactory:
     """Factory for creating authenticated Google Ads API clients."""
 
@@ -53,7 +84,17 @@ class GoogleAdsClientFactory:
         return clean_id
 
     def create_client(self) -> BaseGoogleAdsClient:
-        """Create authenticated Google Ads client with retry configuration."""
+        """Create authenticated Google Ads client with retry configuration.
+
+        Defaults to REST transport to avoid gRPC issues in constrained environments.
+        Set GOOGLE_ADS_USE_GRPC=true to force gRPC.
+        """
+        import os
+
+        # Prefer REST unless explicitly overridden
+        if os.getenv("GOOGLE_ADS_USE_GRPC") is None:
+            os.environ["GOOGLE_ADS_USE_GRPC"] = "false"
+
         config = {
             "developer_token": self.developer_token,
             "refresh_token": self.refresh_token,
@@ -130,12 +171,28 @@ class GoogleAdsService:
 
 
 def create_client_from_env() -> GoogleAdsService:
-    """Create client from environment variables."""
+    """Create client from environment variables or return a mock client.
+
+    If ADS_USE_MOCK=1, returns a minimal mock client so the app can run without
+    Google Ads credentials or network access.
+    """
     import os
 
     from dotenv import load_dotenv
 
     load_dotenv()
+
+    if os.getenv("ADS_USE_MOCK") == "1":
+        logger.warning("ADS_USE_MOCK=1: using mock Google Ads client (no API calls)")
+        # Build a tiny shim so callers can keep using the same interface
+        class _MockFactory(GoogleAdsClientFactory):
+            def __init__(self):
+                super().__init__(
+                    developer_token="mock", refresh_token="mock", client_id="mock", client_secret="mock", login_customer_id=os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID")
+                )
+            def create_client(self):
+                return _MockGoogleAdsClient(login_customer_id=self.login_customer_id)
+        return GoogleAdsService(_MockFactory())
 
     required_vars = [
         "GOOGLE_ADS_DEVELOPER_TOKEN",

@@ -170,7 +170,21 @@ def campaigns(
     action: str = typer.Option("list", help="Action: list, create, update"),
 ) -> None:
     """Manage campaigns."""
-    pass
+    if action == "list":
+        from src.ads.campaigns import list_campaigns
+        rows = list_campaigns(customer_id)
+        if not rows:
+            print("No campaigns found or unable to fetch campaigns.")
+            return
+        # Simple table output
+        print(f"Found {len(rows)} campaigns:\n")
+        print(f"{'ID':<15} {'STATUS':<12} NAME")
+        print("-" * 60)
+        for r in rows:
+            print(f"{r['id']:<15} {r['status']:<12} {r['name']}")
+        return
+
+    print(f"Unsupported action: {action}")
 
 
 @app.command()
