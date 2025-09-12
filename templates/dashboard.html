@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI AdWords Dashboard - Cross-Platform Ad Performance</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.0.0/dist/chart.min.css" rel="stylesheet">
+    <link href="/static/css/dashboard.css" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1><i class="fas fa-chart-line"></i> AI AdWords Dashboard</h1>
+                <div class="header-actions">
+                    <button id="refreshBtn" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <span id="lastUpdated" class="last-updated"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading-overlay">
+            <div class="spinner"></div>
+            <p>Loading performance data...</p>
+        </div>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- KPI Summary Cards -->
+            <section class="kpi-section">
+                <h2><i class="fas fa-tachometer-alt"></i> Performance Overview</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card total-spend">
+                        <div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="totalSpend">$0</div>
+                            <div class="kpi-label">Total Spend</div>
+                            <div class="kpi-change" id="spendChange">+0%</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card total-impressions">
+                        <div class="kpi-icon"><i class="fas fa-eye"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="totalImpressions">0</div>
+                            <div class="kpi-label">Impressions</div>
+                            <div class="kpi-change" id="impressionsChange">+0%</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card total-clicks">
+                        <div class="kpi-icon"><i class="fas fa-mouse-pointer"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="totalClicks">0</div>
+                            <div class="kpi-label">Clicks</div>
+                            <div class="kpi-change" id="clicksChange">+0%</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card total-conversions">
+                        <div class="kpi-icon"><i class="fas fa-chart-bar"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="totalConversions">0</div>
+                            <div class="kpi-label">Conversions</div>
+                            <div class="kpi-change" id="conversionsChange">+0%</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card avg-ctr">
+                        <div class="kpi-icon"><i class="fas fa-percentage"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="avgCTR">0%</div>
+                            <div class="kpi-label">Avg CTR</div>
+                            <div class="kpi-change" id="ctrChange">+0%</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card avg-roas">
+                        <div class="kpi-icon"><i class="fas fa-trophy"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="avgROAS">0x</div>
+                            <div class="kpi-label">ROAS</div>
+                            <div class="kpi-change" id="roasChange">+0%</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Platform Breakdown -->
+            <section class="platform-section">
+                <h2><i class="fas fa-layer-group"></i> Platform Performance</h2>
+                
+                <!-- Platform Chart -->
+                <div class="chart-container">
+                    <canvas id="platformChart"></canvas>
+                </div>
+
+                <!-- Platform Details -->
+                <div class="platform-grid">
+                    <!-- Google Ads -->
+                    <div class="platform-card google-ads">
+                        <div class="platform-header">
+                            <div class="platform-icon"><i class="fab fa-google"></i></div>
+                            <div class="platform-title">
+                                <h3>Google Ads</h3>
+                                <span class="platform-status" id="googleStatus">Active</span>
+                            </div>
+                        </div>
+                        <div class="platform-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Spend</span>
+                                <span class="metric-value" id="googleSpend">$0</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Conversions</span>
+                                <span class="metric-value" id="googleConversions">0</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">ROAS</span>
+                                <span class="metric-value" id="googleROAS">0x</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">CTR</span>
+                                <span class="metric-value" id="googleCTR">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reddit Ads -->
+                    <div class="platform-card reddit-ads">
+                        <div class="platform-header">
+                            <div class="platform-icon"><i class="fab fa-reddit"></i></div>
+                            <div class="platform-title">
+                                <h3>Reddit Ads</h3>
+                                <span class="platform-status" id="redditStatus">Mock Mode</span>
+                            </div>
+                        </div>
+                        <div class="platform-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Spend</span>
+                                <span class="metric-value" id="redditSpend">$0</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Conversions</span>
+                                <span class="metric-value" id="redditConversions">0</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">ROAS</span>
+                                <span class="metric-value" id="redditROAS">0x</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">CTR</span>
+                                <span class="metric-value" id="redditCTR">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- X/Twitter Ads -->
+                    <div class="platform-card x-ads">
+                        <div class="platform-header">
+                            <div class="platform-icon"><i class="fab fa-x-twitter"></i></div>
+                            <div class="platform-title">
+                                <h3>X (Twitter) Ads</h3>
+                                <span class="platform-status" id="xStatus">Mock Mode</span>
+                            </div>
+                        </div>
+                        <div class="platform-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Spend</span>
+                                <span class="metric-value" id="xSpend">$0</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Conversions</span>
+                                <span class="metric-value" id="xConversions">0</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">ROAS</span>
+                                <span class="metric-value" id="xROAS">0x</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">CTR</span>
+                                <span class="metric-value" id="xCTR">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Agent System Status -->
+            <section class="agents-section">
+                <h2><i class="fas fa-robot"></i> AI Agent System</h2>
+                <div class="agents-grid" id="agentsGrid">
+                    <!-- Agent cards will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Recent Activity -->
+            <section class="activity-section">
+                <h2><i class="fas fa-history"></i> Recent Agent Activity</h2>
+                <div class="activity-feed" id="activityFeed">
+                    <!-- Activity items will be populated by JavaScript -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.0/dist/chart.min.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

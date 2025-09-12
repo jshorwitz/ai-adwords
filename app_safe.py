@@ -4,8 +4,11 @@ import os
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 
 # Configure logging
 logging.basicConfig(
@@ -58,6 +61,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Templates and static files
+templates = Jinja2Templates(directory="templates")
+
+# Mount static files
+try:
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+    logger.info("✅ Static files mounted")
+except Exception as e:
+    logger.warning(f"⚠️ Static files not mounted: {e}")
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -68,6 +81,16 @@ app.add_middleware(
 )
 
 
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard_view(request: Request):
+    """Main dashboard UI."""
+    try:
+        return templates.TemplateResponse("dashboard.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Failed to render dashboard: {e}")
+        return HTMLResponse(content=f"<h1>Dashboard Error: {e}</h1>", status_code=500)
+
+
 @app.get("/")
 def read_root():
     """Root endpoint."""
@@ -76,6 +99,7 @@ def read_root():
         "service": "ai-adwords-platform",
         "version": "1.0.0",
         "endpoints": {
+            "dashboard": "/dashboard",
             "health": "/health",
             "docs": "/docs",
             "agents": "/agents/health",
@@ -124,6 +148,14 @@ try:
     logger.info("✅ Agent routes loaded")
 except Exception as e:
     logger.warning(f"⚠️ Agent routes failed to load: {e}")
+
+# Include dashboard routes (safe)
+try:
+    from src.api.dashboard_routes import router as dashboard_router
+    app.include_router(dashboard_router)
+    logger.info("✅ Dashboard routes loaded")
+except Exception as e:
+    logger.warning(f"⚠️ Dashboard routes failed to load: {e}")
 
 
 if __name__ == "__main__":
