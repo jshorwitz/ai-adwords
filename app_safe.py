@@ -168,13 +168,21 @@ def agents_health():
         }
 
 
-# Include auth routes (safe)
+# Include auth routes (simplified for demo)
 try:
-    from src.api.auth_routes import router as auth_router
+    from src.api.auth_simple import router as auth_router
     app.include_router(auth_router)
-    logger.info("✅ Auth routes loaded")
+    logger.info("✅ Simplified auth routes loaded")
 except Exception as e:
     logger.warning(f"⚠️ Auth routes failed to load: {e}")
+    # Create basic auth endpoints as fallback
+    @app.post("/auth/signup")
+    async def fallback_signup():
+        return {"message": "Signup endpoint available but auth system not loaded"}
+    
+    @app.post("/auth/login") 
+    async def fallback_login():
+        return {"message": "Login endpoint available but auth system not loaded"}
 
 # Include agent routes (safe)
 try:
