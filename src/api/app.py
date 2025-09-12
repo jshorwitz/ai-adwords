@@ -21,14 +21,13 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("🚀 Starting AI AdWords unified ads platform")
     
-    # Create database tables (non-blocking)
-    try:
-        await create_tables()
-        logger.info("📊 Database tables created/verified")
-    except Exception as e:
-        logger.warning(f"⚠️ Database initialization failed (will retry): {e}")
+    # Log environment info for debugging
+    import os
+    logger.info(f"🔧 PORT: {os.getenv('PORT', 'not set')}")
+    logger.info(f"🔧 HOST: {os.getenv('HOST', 'not set')}")
+    logger.info(f"🔧 DATABASE_URL: {'set' if os.getenv('DATABASE_URL') else 'not set'}")
     
-    # Import agents to register them
+    # Import agents to register them (safe operation)
     try:
         from ..agents import ingestors, transforms, activations, decisions
         from ..agents.runner import agent_registry
@@ -36,8 +35,16 @@ async def lifespan(app: FastAPI):
         agent_count = len(agent_registry.list_agents())
         logger.info(f"🤖 Registered {agent_count} agents")
     except Exception as e:
-        logger.warning(f"⚠️ Agent registration failed (will retry): {e}")
+        logger.warning(f"⚠️ Agent registration failed: {e}")
     
+    # Database initialization (non-blocking, can fail)
+    try:
+        await create_tables()
+        logger.info("📊 Database tables created/verified")
+    except Exception as e:
+        logger.warning(f"⚠️ Database initialization failed (will retry): {e}")
+    
+    logger.info("✅ Application startup complete")
     yield
     
     # Shutdown
