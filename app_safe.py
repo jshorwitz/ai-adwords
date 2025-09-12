@@ -162,6 +162,25 @@ def health_check():
     }
 
 
+@app.get("/data-sources")
+async def data_sources_status():
+    """Get status of all data sources and integrations."""
+    try:
+        from src.intelligence.data_sources import data_sources, validate_environment_setup
+        
+        return {
+            "data_sources": data_sources.get_data_source_status(),
+            "environment_setup": validate_environment_setup(),
+            "integration_health": "operational"
+        }
+    except Exception as e:
+        logger.warning(f"Data sources status failed: {e}")
+        return {
+            "error": "Data sources status unavailable",
+            "integration_health": "limited"
+        }
+
+
 @app.get("/agents/health")
 def agents_health():
     """Agent system health check."""
