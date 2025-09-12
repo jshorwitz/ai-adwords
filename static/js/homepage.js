@@ -23,6 +23,10 @@ class Homepage {
             this.showModal('signup');
         });
 
+        document.getElementById('heroOnboardingBtn').addEventListener('click', () => {
+            this.goToOnboarding();
+        });
+
         document.getElementById('heroSignupBtn').addEventListener('click', () => {
             this.showModal('signup');
         });
@@ -346,6 +350,10 @@ class Homepage {
 
     goToDemo() {
         window.location.href = '/demo';
+    }
+
+    goToOnboarding() {
+        window.location.href = '/onboarding';
     }
 
     handleOAuthLogin(provider) {

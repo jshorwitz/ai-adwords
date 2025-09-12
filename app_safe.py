@@ -111,6 +111,16 @@ async def dashboard_view(request: Request):
         return HTMLResponse(content=f"<h1>Dashboard Error: {e}</h1>", status_code=500)
 
 
+@app.get("/onboarding", response_class=HTMLResponse)
+async def onboarding_flow(request: Request):
+    """One-field onboarding flow for instant ad insights."""
+    try:
+        return templates.TemplateResponse("onboarding.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Failed to render onboarding: {e}")
+        return HTMLResponse(content=f"<h1>Onboarding Error: {e}</h1>", status_code=500)
+
+
 @app.get("/demo", response_class=HTMLResponse)
 async def demo_dashboard(request: Request):
     """Demo dashboard for unauthenticated users."""
@@ -199,6 +209,14 @@ try:
     logger.info("✅ Dashboard routes loaded")
 except Exception as e:
     logger.warning(f"⚠️ Dashboard routes failed to load: {e}")
+
+# Include onboarding routes (safe)
+try:
+    from src.api.onboarding_routes import router as onboarding_router
+    app.include_router(onboarding_router)
+    logger.info("✅ Onboarding routes loaded")
+except Exception as e:
+    logger.warning(f"⚠️ Onboarding routes failed to load: {e}")
 
 
 if __name__ == "__main__":

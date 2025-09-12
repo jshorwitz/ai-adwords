@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI AdWords - Instant Ad Analysis</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/onboarding.css" rel="stylesheet">
+</head>
+<body>
+    <div class="onboarding-container">
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <div class="progress-time">
+                <span id="timeRemaining">60</span> seconds remaining
+            </div>
+        </div>
+
+        <!-- Step 1: URL Input -->
+        <div id="step1" class="onboarding-step active">
+            <div class="step-content">
+                <div class="step-header">
+                    <h1>GET INSTANT AD INSIGHTS</h1>
+                    <p>Enter your website URL and discover optimization opportunities in under 60 seconds</p>
+                </div>
+                
+                <div class="url-input-container">
+                    <form id="urlForm">
+                        <div class="url-input-group">
+                            <div class="url-icon">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <input 
+                                type="url" 
+                                id="websiteUrl" 
+                                name="url" 
+                                placeholder="https://yourwebsite.com"
+                                required
+                                autocomplete="url"
+                            >
+                            <button type="submit" class="analyze-btn">
+                                <span class="btn-text">ANALYZE NOW</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <div class="input-help">
+                        <i class="fas fa-shield-alt"></i>
+                        We'll analyze your site for ads, keywords, and optimization opportunities
+                    </div>
+                </div>
+
+                <div class="example-urls">
+                    <p>Try these examples:</p>
+                    <div class="example-list">
+                        <button class="example-btn" data-url="https://sourcegraph.com">sourcegraph.com</button>
+                        <button class="example-btn" data-url="https://shopify.com">shopify.com</button>
+                        <button class="example-btn" data-url="https://vercel.com">vercel.com</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Analysis Progress -->
+        <div id="step2" class="onboarding-step">
+            <div class="step-content">
+                <div class="analysis-progress">
+                    <div class="analysis-icon">
+                        <div class="pulse-circle">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                    </div>
+                    
+                    <h2>ANALYZING YOUR WEBSITE</h2>
+                    <div id="currentTask" class="current-task">Initializing analysis...</div>
+                    
+                    <div class="analysis-steps">
+                        <div class="analysis-step" id="stepWebsite">
+                            <div class="step-icon"><i class="fas fa-globe"></i></div>
+                            <div class="step-text">
+                                <div class="step-title">Website Analysis</div>
+                                <div class="step-status">Scanning content and structure</div>
+                            </div>
+                            <div class="step-indicator">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+
+                        <div class="analysis-step" id="stepKeywords">
+                            <div class="step-icon"><i class="fas fa-key"></i></div>
+                            <div class="step-text">
+                                <div class="step-title">Keyword Discovery</div>
+                                <div class="step-status">Finding optimization keywords</div>
+                            </div>
+                            <div class="step-indicator">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+
+                        <div class="analysis-step" id="stepCompetitors">
+                            <div class="step-icon"><i class="fas fa-users"></i></div>
+                            <div class="step-text">
+                                <div class="step-title">Competitor Analysis</div>
+                                <div class="step-status">Analyzing competitor strategies</div>
+                            </div>
+                            <div class="step-indicator">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+
+                        <div class="analysis-step" id="stepOptimization">
+                            <div class="step-icon"><i class="fas fa-lightbulb"></i></div>
+                            <div class="step-text">
+                                <div class="step-title">AI Optimization Brief</div>
+                                <div class="step-status">Generating recommendations</div>
+                            </div>
+                            <div class="step-indicator">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Analysis Results -->
+        <div id="step3" class="onboarding-step">
+            <div class="step-content">
+                <div class="results-header">
+                    <h2>YOUR AD OPTIMIZATION INSIGHTS</h2>
+                    <div class="analysis-complete">
+                        <i class="fas fa-check-circle"></i>
+                        Analysis complete in <span id="analysisTime">45</span> seconds
+                    </div>
+                </div>
+
+                <div class="insights-grid">
+                    <!-- Website Overview -->
+                    <div class="insight-card website-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-globe"></i> Website Analysis</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="website-info">
+                                <div class="website-title" id="websiteTitle">Loading...</div>
+                                <div class="website-description" id="websiteDescription">Analyzing content...</div>
+                                <div class="website-industry" id="websiteIndustry">Industry: Detecting...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Keywords Discovered -->
+                    <div class="insight-card keywords-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-key"></i> Keywords Discovered</h3>
+                            <span class="keyword-count" id="keywordCount">0</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="keywords-list" id="keywordsList">
+                                <!-- Keywords will be populated -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estimated KPIs -->
+                    <div class="insight-card kpis-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Estimated Performance</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="kpi-grid">
+                                <div class="kpi-item">
+                                    <div class="kpi-value" id="estImpressions">-</div>
+                                    <div class="kpi-label">Est. Impressions/Mo</div>
+                                </div>
+                                <div class="kpi-item">
+                                    <div class="kpi-value" id="estCPC">-</div>
+                                    <div class="kpi-label">Avg CPC</div>
+                                </div>
+                                <div class="kpi-item">
+                                    <div class="kpi-value" id="estCTR">-</div>
+                                    <div class="kpi-label">Est. CTR</div>
+                                </div>
+                                <div class="kpi-item">
+                                    <div class="kpi-value" id="estCAC">-</div>
+                                    <div class="kpi-label">Est. CAC</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Optimization Brief -->
+                    <div class="insight-card optimization-card card-wide">
+                        <div class="card-header">
+                            <h3><i class="fas fa-brain"></i> AI Optimization Brief</h3>
+                            <span class="ai-badge">Generated by AI</span>
+                        </div>
+                        <div class="card-content">
+                            <div id="optimizationBrief" class="optimization-brief">
+                                <div class="brief-loading">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Generating personalized recommendations...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Competitors -->
+                    <div class="insight-card competitors-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-users"></i> Competitors Found</h3>
+                            <span class="competitor-count" id="competitorCount">0</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="competitors-list" id="competitorsList">
+                                <!-- Competitors will be populated -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opportunities -->
+                    <div class="insight-card opportunities-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-rocket"></i> Quick Wins</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="opportunities-list" id="opportunitiesList">
+                                <!-- Opportunities will be populated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next Steps -->
+                <div class="next-steps">
+                    <h3>Ready to Optimize Your Ads?</h3>
+                    <p>Connect your ad accounts to unlock autonomous optimization and deeper insights</p>
+                    
+                    <div class="connection-options">
+                        <button class="connect-btn google-connect" id="connectGoogle">
+                            <div class="platform-icon">
+                                <i class="fab fa-google"></i>
+                            </div>
+                            <div class="platform-info">
+                                <div class="platform-name">Connect Google Ads</div>
+                                <div class="platform-desc">Enable autonomous optimization</div>
+                            </div>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+
+                        <button class="connect-btn reddit-connect" id="connectReddit">
+                            <div class="platform-icon">
+                                <i class="fab fa-reddit"></i>
+                            </div>
+                            <div class="platform-info">
+                                <div class="platform-name">Connect Reddit Ads</div>
+                                <div class="platform-desc">Expand to Reddit advertising</div>
+                            </div>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+
+                        <button class="connect-btn x-connect" id="connectX">
+                            <div class="platform-icon">
+                                <i class="fab fa-x-twitter"></i>
+                            </div>
+                            <div class="platform-info">
+                                <div class="platform-name">Connect X Ads</div>
+                                <div class="platform-desc">Activate X advertising</div>
+                            </div>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="onboarding-actions">
+                        <button id="skipToDashboard" class="btn btn-secondary">
+                            SKIP - GO TO DASHBOARD
+                        </button>
+                        <button id="startOptimization" class="btn btn-primary">
+                            START OPTIMIZING NOW
+                            <i class="fas fa-rocket"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/onboarding.js"></script>
+</body>
+</html>
