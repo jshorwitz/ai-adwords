@@ -1,1 +1,1 @@
-web: python debug_app.py
+web: python app_safe.py
