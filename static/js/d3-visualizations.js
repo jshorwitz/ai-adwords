@@ -2,11 +2,19 @@
 
 class D3Visualizations {
     constructor() {
+        // Nike-inspired color palette for platforms
         this.colors = {
-            google: '#4285f4',
-            reddit: '#ff4500', 
-            x: '#000000'
+            google: '#000000',    // Nike black
+            reddit: '#ff6b35',    // Nike orange accent  
+            x: '#9C9C9C'         // Nike medium gray
         };
+        
+        this.colorGradients = {
+            google: ['#000000', '#333333'],
+            reddit: ['#ff6b35', '#ff8c42'],
+            x: ['#9C9C9C', '#666666']
+        };
+        
         this.tooltip = this.createTooltip();
     }
 
