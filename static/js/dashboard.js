@@ -241,49 +241,10 @@ class Dashboard {
     }
 
     updateChart(platforms) {
-        const ctx = document.getElementById('platformChart').getContext('2d');
-        
-        if (this.chart) {
-            this.chart.destroy();
+        // Use D3.js visualizations instead of Chart.js
+        if (window.d3Viz) {
+            window.d3Viz.updateVisualizations(platforms);
         }
-
-        this.chart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: platforms.map(p => p.name),
-                datasets: [{
-                    data: platforms.map(p => p.spend),
-                    backgroundColor: [
-                        '#4285f4',
-                        '#ff4500', 
-                        '#000000'
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Spend by Platform',
-                        font: {
-                            size: 16,
-                            weight: '600'
-                        }
-                    }
-                }
-            }
-        });
     }
 
     updateAgentCards(agents) {

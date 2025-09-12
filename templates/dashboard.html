@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI AdWords Dashboard - Cross-Platform Ad Performance</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.0.0/dist/chart.min.css" rel="stylesheet">
     <link href="/static/css/dashboard.css" rel="stylesheet">
 </head>
 <body>
@@ -95,9 +94,31 @@
             <section class="platform-section">
                 <h2><i class="fas fa-layer-group"></i> Platform Performance</h2>
                 
-                <!-- Platform Chart -->
-                <div class="chart-container">
-                    <canvas id="platformChart"></canvas>
+                <!-- Advanced D3.js Visualizations -->
+                <div class="visualizations-grid">
+                    <!-- Spend Distribution Donut Chart -->
+                    <div class="chart-container">
+                        <h3>Spend Distribution</h3>
+                        <div id="spendDonutChart" class="d3-chart"></div>
+                    </div>
+
+                    <!-- Performance Comparison Bar Chart -->
+                    <div class="chart-container">
+                        <h3>ROAS Comparison</h3>
+                        <div id="roasBarChart" class="d3-chart"></div>
+                    </div>
+
+                    <!-- Conversion Bubble Chart -->
+                    <div class="chart-container">
+                        <h3>Performance Bubble Chart</h3>
+                        <div id="performanceBubbleChart" class="d3-chart"></div>
+                    </div>
+
+                    <!-- Time Series Performance -->
+                    <div class="chart-container chart-wide">
+                        <h3>Performance Trend (Last 30 Days)</h3>
+                        <div id="timeSeriesChart" class="d3-chart"></div>
+                    </div>
                 </div>
 
                 <!-- Platform Details -->
@@ -210,7 +231,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.0/dist/chart.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/d3-visualizations.js"></script>
 </body>
 </html>

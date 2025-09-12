@@ -99,13 +99,16 @@ async def get_platform_performance_data(
 
 @router.get("/chart-data")
 async def get_chart_data(
-    chart_type: str = Query(description="Type of chart: spend, conversions, ctr"),
+    chart_type: str = Query(description="Type of chart: spend, conversions, ctr, timeseries"),
     days: int = Query(default=7, description="Number of days"),
     current_user: User = Depends(get_current_user),
 ):
     """Get data for dashboard charts."""
     
     try:
+        if chart_type == "timeseries":
+            return await get_time_series_data(days)
+        
         platforms = await get_platform_performance(days)
         
         if chart_type == "spend":
@@ -131,6 +134,64 @@ async def get_chart_data(
             
     except Exception as e:
         logger.exception(f"Failed to get chart data for {chart_type}")
+        return {"error": str(e)}
+
+
+@router.get("/timeseries")
+async def get_time_series_data(
+    days: int = Query(default=30, description="Number of days"),
+    current_user: User = Depends(get_current_user),
+):
+    """Get time series data for performance trends."""
+    
+    try:
+        # TODO: Implement actual database query for historical data
+        # This would query ad_metrics table grouped by date and platform
+        
+        # Generate mock time series data
+        import random
+        from datetime import date, timedelta
+        
+        time_series = []
+        end_date = date.today()
+        
+        for i in range(days):
+            current_date = end_date - timedelta(days=days-1-i)
+            
+            # Generate realistic trending data with some randomness
+            base_trend = i / days  # Gradual increase over time
+            
+            time_series.append({
+                "date": current_date.isoformat(),
+                "google": {
+                    "spend": 800 + random.uniform(-200, 300) + (base_trend * 200),
+                    "conversions": 20 + random.uniform(-5, 10) + (base_trend * 5),
+                    "ctr": 4.5 + random.uniform(-1, 1),
+                    "roas": 3.2 + random.uniform(-0.5, 0.8)
+                },
+                "reddit": {
+                    "spend": 200 + random.uniform(-50, 100) + (base_trend * 50),
+                    "conversions": 8 + random.uniform(-2, 4) + (base_trend * 2),
+                    "ctr": 4.1 + random.uniform(-0.8, 0.8),
+                    "roas": 2.8 + random.uniform(-0.3, 0.6)
+                },
+                "x": {
+                    "spend": 150 + random.uniform(-30, 80) + (base_trend * 30),
+                    "conversions": 6 + random.uniform(-1, 3) + (base_trend * 1.5),
+                    "ctr": 3.4 + random.uniform(-0.6, 0.6),
+                    "roas": 2.9 + random.uniform(-0.4, 0.5)
+                }
+            })
+        
+        return {
+            "dates": [item["date"] for item in time_series],
+            "google": [item["google"] for item in time_series],
+            "reddit": [item["reddit"] for item in time_series],
+            "x": [item["x"] for item in time_series]
+        }
+        
+    except Exception as e:
+        logger.exception("Failed to get time series data")
         return {"error": str(e)}
 
 
