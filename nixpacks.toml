@@ -1,0 +1,15 @@
+# Nixpacks configuration for Railway
+[phases.setup]
+nixPkgs = ['python311', 'poetry']
+
+[phases.install] 
+cmds = [
+  'poetry config virtualenvs.create false',
+  'poetry install --only=main'
+]
+
+[phases.build]
+cmds = ['echo "Build phase complete"']
+
+[start]
+cmd = 'python start_app.py'

@@ -102,3 +102,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# For Railway/platform deployments that import this module
+def create_app():
+    """Create and return the FastAPI app for deployment platforms."""
+    from src.api.app import app
+    return app
