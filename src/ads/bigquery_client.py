@@ -2,26 +2,25 @@
 
 import logging
 import os
-from typing import Dict, Any, List, Optional
 
+import pandas as pd
 from google.cloud import bigquery
 from google.oauth2 import service_account
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
 class BigQueryClient:
     """BigQuery client for storing Google Ads data."""
-    
+
     def __init__(
         self,
         project_id: str,
-        credentials_path: Optional[str] = None,
-        dataset_id: str = "google_ads_data"
+        credentials_path: str | None = None,
+        dataset_id: str = "google_ads_data",
     ):
         """Initialize BigQuery client.
-        
+
         Args:
             project_id: Google Cloud Project ID
             credentials_path: Path to service account JSON file
@@ -29,37 +28,33 @@ class BigQueryClient:
         """
         self.project_id = project_id
         self.dataset_id = dataset_id
-        
+
         # Initialize credentials
         if credentials_path and os.path.exists(credentials_path):
             credentials = service_account.Credentials.from_service_account_file(
-                credentials_path,
-                scopes=["https://www.googleapis.com/auth/bigquery"]
+                credentials_path, scopes=["https://www.googleapis.com/auth/bigquery"]
             )
-            self.client = bigquery.Client(
-                credentials=credentials, 
-                project=project_id
-            )
+            self.client = bigquery.Client(credentials=credentials, project=project_id)
         else:
             # Use default credentials (GOOGLE_APPLICATION_CREDENTIALS)
             self.client = bigquery.Client(project=project_id)
-            
+
         self.dataset_ref = self.client.dataset(dataset_id)
-        
+
     def create_dataset(self) -> None:
         """Create the dataset if it doesn't exist."""
         try:
             dataset = bigquery.Dataset(self.dataset_ref)
             dataset.location = "US"  # Change if you need different location
             dataset.description = "Google Ads reporting data warehouse"
-            
+
             dataset = self.client.create_dataset(dataset, exists_ok=True)
             logger.info(f"Created dataset {self.project_id}.{self.dataset_id}")
-            
+
         except Exception as ex:
             logger.error(f"Failed to create dataset: {ex}")
             raise
-    
+
     def create_campaigns_table(self) -> None:
         """Create campaigns performance table."""
         schema = [
@@ -81,9 +76,9 @@ class BigQueryClient:
             bigquery.SchemaField("conversion_rate", "FLOAT"),
             bigquery.SchemaField("updated_at", "TIMESTAMP"),
         ]
-        
+
         self._create_table("campaigns_performance", schema)
-    
+
     def create_keywords_table(self) -> None:
         """Create keywords performance table."""
         schema = [
@@ -105,49 +100,52 @@ class BigQueryClient:
             bigquery.SchemaField("average_cpc_dollars", "FLOAT"),
             bigquery.SchemaField("updated_at", "TIMESTAMP"),
         ]
-        
+
         self._create_table("keywords_performance", schema)
-    
-    def _create_table(self, table_name: str, schema: List[bigquery.SchemaField]) -> None:
+
+    def _create_table(
+        self, table_name: str, schema: list[bigquery.SchemaField]
+    ) -> None:
         """Create a table with the given schema."""
         try:
             table_ref = self.dataset_ref.table(table_name)
             table = bigquery.Table(table_ref, schema=schema)
-            
+
             # Add partitioning by date for better performance
             table.time_partitioning = bigquery.TimePartitioning(
-                type_=bigquery.TimePartitioningType.DAY,
-                field="date"
+                type_=bigquery.TimePartitioningType.DAY, field="date"
             )
-            
+
             table = self.client.create_table(table, exists_ok=True)
-            logger.info(f"Created table {self.project_id}.{self.dataset_id}.{table_name}")
-            
+            logger.info(
+                f"Created table {self.project_id}.{self.dataset_id}.{table_name}"
+            )
+
         except Exception as ex:
             logger.error(f"Failed to create table {table_name}: {ex}")
             raise
-    
+
     def insert_dataframe(self, table_name: str, df: pd.DataFrame) -> None:
         """Insert a pandas DataFrame into a BigQuery table."""
         try:
             table_ref = self.dataset_ref.table(table_name)
-            
+
             job_config = bigquery.LoadJobConfig(
                 write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
-                autodetect=False
+                autodetect=False,
             )
-            
+
             job = self.client.load_table_from_dataframe(
                 df, table_ref, job_config=job_config
             )
-            
+
             job.result()  # Wait for job to complete
             logger.info(f"Inserted {len(df)} rows into {table_name}")
-            
+
         except Exception as ex:
             logger.error(f"Failed to insert data into {table_name}: {ex}")
             raise
-    
+
     def query(self, sql: str) -> pd.DataFrame:
         """Execute a SQL query and return results as DataFrame."""
         try:
@@ -155,15 +153,13 @@ class BigQueryClient:
         except Exception as ex:
             logger.error(f"Query failed: {ex}")
             raise
-    
+
     def get_campaign_performance(
-        self, 
-        customer_id: str, 
-        days: int = 30
+        self, customer_id: str, days: int = 30
     ) -> pd.DataFrame:
         """Get campaign performance for the last N days."""
         sql = f"""
-        SELECT 
+        SELECT
             date,
             campaign_name,
             impressions,
@@ -177,56 +173,109 @@ class BigQueryClient:
         AND date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days DAY)
         ORDER BY date DESC, impressions DESC
         """
-        
+
         job_config = bigquery.QueryJobConfig(
             query_parameters=[
                 bigquery.ScalarQueryParameter("customer_id", "STRING", customer_id),
                 bigquery.ScalarQueryParameter("days", "INT64", days),
             ]
         )
-        
+
         return self.client.query(sql, job_config=job_config).to_dataframe()
 
 
 def create_bigquery_client_from_env() -> BigQueryClient:
-    """Create BigQuery client from environment variables."""
+    """Create BigQuery client from environment variables or Streamlit secrets.
+
+    Priority order:
+    1) Streamlit Cloud secrets with a service account dict under "gcp_service_account"
+       and project/dataset under either root or the "bigquery" section
+    2) Streamlit Cloud secrets with only project/dataset (use ADC if present)
+    3) Local env vars (.env) with optional GOOGLE_APPLICATION_CREDENTIALS path
+    """
     import streamlit as st
     from dotenv import load_dotenv
-    import json
-    
+    from google.oauth2 import service_account as _sa
+
     # Load environment variables from .env file (for local dev)
     load_dotenv()
-    
-    # Check if we're in Streamlit Cloud environment
-    if hasattr(st, 'secrets') and "GOOGLE_CLOUD_PROJECT" in st.secrets:
-        project_id = st.secrets["GOOGLE_CLOUD_PROJECT"]
-        dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "google_ads_data")
-        
-        # Use public dataset (no authentication needed)
-        client = bigquery.Client(project=project_id)
-        
-        # Create custom BigQuery client
+
+    def _mk_client(
+        project_id: str, dataset_id: str, credentials=None
+    ) -> BigQueryClient:
+        client = bigquery.Client(credentials=credentials, project=project_id)
+        # Create custom BigQuery client wrapper without re-running __init__
         bq_client = BigQueryClient.__new__(BigQueryClient)
         bq_client.project_id = project_id
         bq_client.dataset_id = dataset_id
         bq_client.client = client
         bq_client.dataset_ref = client.dataset(dataset_id)
         return bq_client
-    
-    # Local development fallback
-    project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+
+    # Streamlit Cloud (secrets) — support both nested and root keys
+    if hasattr(st, "secrets") and st.secrets:
+        # Prefer nested section first
+        project_id = None
+        dataset_id = None
+        credentials = None
+
+        if "bigquery" in st.secrets:
+            section = st.secrets["bigquery"]
+            project_id = section.get("GOOGLE_CLOUD_PROJECT") or section.get(
+                "project_id"
+            )
+            dataset_id = section.get("BIGQUERY_DATASET_ID", "google_ads_data")
+        else:
+            project_id = st.secrets.get("GOOGLE_CLOUD_PROJECT") or st.secrets.get(
+                "project_id"
+            )
+            dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "google_ads_data")
+
+        # Service account JSON embedded as a dict in secrets (recommended)
+        # Streamlit convention: [gcp_service_account] ...
+        if "gcp_service_account" in st.secrets:
+            sa_info = dict(st.secrets["gcp_service_account"])  # Copy to plain dict
+            # Only use if required fields exist (avoid empty table in local dev)
+            required_keys = {"client_email", "private_key", "token_uri"}
+            if sa_info and required_keys.issubset(sa_info.keys()):
+                credentials = _sa.Credentials.from_service_account_info(
+                    sa_info,
+                    scopes=[
+                        "https://www.googleapis.com/auth/bigquery",
+                    ],
+                )
+                if not project_id:
+                    project_id = sa_info.get("project_id")
+
+        if project_id:
+            return _mk_client(
+                project_id=project_id,
+                dataset_id=dataset_id or "google_ads_data",
+                credentials=credentials,
+            )
+        # If no project_id found in secrets, fall through to env handling
+
+    # Local development fallback (env vars)
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("project_id")
     dataset_id = os.getenv("BIGQUERY_DATASET_ID", "google_ads_data")
     credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    
-    # Don't use credentials file if it doesn't exist
-    if credentials_path and not os.path.exists(credentials_path):
-        credentials_path = None
-    
+
+    # Prefer file-based service account if provided and exists
+    if credentials_path and os.path.exists(credentials_path):
+        credentials = _sa.Credentials.from_service_account_file(
+            credentials_path,
+            scopes=["https://www.googleapis.com/auth/bigquery"],
+        )
+        return _mk_client(
+            project_id=project_id or credentials.project_id,
+            dataset_id=dataset_id,
+            credentials=credentials,
+        )
+
     if not project_id:
-        raise ValueError("GOOGLE_CLOUD_PROJECT environment variable required")
-    
-    return BigQueryClient(
-        project_id=project_id,
-        credentials_path=credentials_path,
-        dataset_id=dataset_id
-    )
+        raise ValueError(
+            "GOOGLE_CLOUD_PROJECT (or project_id) is required via secrets or env"
+        )
+
+    # Use ADC (e.g., `gcloud auth application-default login`) or metadata when available
+    return _mk_client(project_id=project_id, dataset_id=dataset_id)

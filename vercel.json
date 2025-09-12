@@ -1,0 +1,30 @@
+{
+  "builds": [
+    {
+      "src": "start_app.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "start_app.py"
+    }
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "HOST": "0.0.0.0",
+    "PORT": "8000",
+    "LOG_LEVEL": "info",
+    "MOCK_REDDIT": "true",
+    "MOCK_TWITTER": "true",
+    "ENABLE_REAL_MUTATES": "false"
+  },
+  "functions": {
+    "start_app.py": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
+}

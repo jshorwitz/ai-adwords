@@ -1,0 +1,76 @@
+# Docker Compose for AI AdWords Platform with PostgreSQL
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ai-adwords-postgres
+    environment:
+      POSTGRES_DB: ai_adwords
+      POSTGRES_USER: ads_user
+      POSTGRES_PASSWORD: ads_pass_secure_123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ads_user -d ai_adwords"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # AI AdWords application
+  app:
+    build: .
+    container_name: ai-adwords-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://ads_user:ads_pass_secure_123@postgres:5432/ai_adwords
+      SECRET_KEY: your-super-secret-key-change-in-production-32-chars-min
+      HOST: 0.0.0.0
+      PORT: 8000
+      LOG_LEVEL: info
+      RELOAD: "false"
+      
+      # Mock settings for development
+      MOCK_REDDIT: "true"
+      MOCK_TWITTER: "true"
+      ENABLE_REAL_MUTATES: "false"
+      
+      # Add your real API keys here
+      # GOOGLE_ADS_CLIENT_ID: your_google_ads_client_id
+      # GOOGLE_ADS_CLIENT_SECRET: your_google_ads_client_secret  
+      # GOOGLE_ADS_DEVELOPER_TOKEN: your_google_ads_developer_token
+    
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for future caching/queues (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: ai-adwords-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: ai-adwords-network

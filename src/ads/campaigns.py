@@ -5,8 +5,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from src.ads.ads_client import create_client_from_env
-from src.ads.data_generator import generate_historical_campaign_data
+from .ads_client import create_client_from_env
+from .data_generator import generate_historical_campaign_data
 
 
 def list_campaigns(customer_id: str) -> list[dict[str, Any]]:
@@ -148,7 +148,9 @@ def create_campaign(
     )
 
     budget_rn = (
-        budget_resp.results[0].resource_name if not dry_run else f"customers/{customer_id}/campaignBudgets/placeholder"
+        budget_resp.results[0].resource_name
+        if not dry_run
+        else f"customers/{customer_id}/campaignBudgets/placeholder"
     )
 
     # 2) Create campaign
@@ -158,7 +160,9 @@ def create_campaign(
     camp.name = name
     camp.status = client.enums.CampaignStatusEnum.PAUSED
     camp.advertising_channel_type = getattr(
-        client.enums.AdvertisingChannelTypeEnum, channel, client.enums.AdvertisingChannelTypeEnum.SEARCH
+        client.enums.AdvertisingChannelTypeEnum,
+        channel,
+        client.enums.AdvertisingChannelTypeEnum.SEARCH,
     )
     camp.campaign_budget = budget_rn
 
@@ -166,7 +170,9 @@ def create_campaign(
     if bidding_strategy.upper() == "MAXIMIZE_CONVERSIONS":
         camp.maximize_conversions.CopyFrom(client.get_type("MaximizeConversions"))
     elif bidding_strategy.upper() == "MAXIMIZE_CONVERSION_VALUE":
-        camp.maximize_conversion_value.CopyFrom(client.get_type("MaximizeConversionValue"))
+        camp.maximize_conversion_value.CopyFrom(
+            client.get_type("MaximizeConversionValue")
+        )
     elif bidding_strategy.upper() == "MANUAL_CPC":
         camp.manual_cpc.CopyFrom(client.get_type("ManualCpc"))
 
@@ -190,7 +196,9 @@ def create_campaign(
     )
 
     camp_rn = (
-        camp_resp.results[0].resource_name if not dry_run else f"customers/{customer_id}/campaigns/placeholder"
+        camp_resp.results[0].resource_name
+        if not dry_run
+        else f"customers/{customer_id}/campaigns/placeholder"
     )
 
     return {
@@ -199,4 +207,3 @@ def create_campaign(
         "campaign_resource_name": camp_rn,
         "dry_run": dry_run,
     }
-

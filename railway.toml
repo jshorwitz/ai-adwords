@@ -1,0 +1,28 @@
+# Railway.app deployment configuration
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "python start_app.py"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "always"
+
+[variables]
+PYTHONUNBUFFERED = "1"
+PYTHONDONTWRITEBYTECODE = "1"
+PORT = "8000"
+HOST = "0.0.0.0"
+LOG_LEVEL = "info"
+RELOAD = "false"
+
+# Safety settings - disable real API calls initially
+MOCK_REDDIT = "true"
+MOCK_TWITTER = "true" 
+ENABLE_REAL_MUTATES = "false"
+
+# Generated DATABASE_URL will be provided by Railway PostgreSQL addon
+# Generated SECRET_KEY will be provided by Railway
+
+[experimental]
+incrementalBuilds = true

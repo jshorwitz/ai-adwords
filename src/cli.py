@@ -1,6 +1,6 @@
 """CLI interface using Typer for Google Ads operations."""
 
-from typing import Optional
+
 import typer
 
 from src.ads.accounts import list_accessible_clients
@@ -22,7 +22,7 @@ def account_info(
 ) -> None:
     """Get detailed information for a specific customer account."""
     from src.ads.accounts import get_customer_info
-    
+
     info = get_customer_info(customer_id)
     if info:
         print(f"Account ID: {info.get('id', 'N/A')}")
@@ -38,23 +38,23 @@ def account_info(
 def setup_bigquery() -> None:
     """Setup BigQuery dataset and tables for Google Ads data."""
     from src.ads.bigquery_client import create_bigquery_client_from_env
-    
+
     try:
         print("Setting up BigQuery...")
         client = create_bigquery_client_from_env()
-        
+
         print("Creating dataset...")
         client.create_dataset()
-        
+
         print("Creating campaigns table...")
         client.create_campaigns_table()
-        
+
         print("Creating keywords table...")
         client.create_keywords_table()
-        
+
         print("✅ BigQuery setup complete!")
         print(f"Dataset: {client.project_id}.{client.dataset_id}")
-        
+
     except Exception as ex:
         print(f"❌ BigQuery setup failed: {ex}")
 
@@ -63,16 +63,16 @@ def setup_bigquery() -> None:
 def bigquery_test() -> None:
     """Test BigQuery connection."""
     from src.ads.bigquery_client import create_bigquery_client_from_env
-    
+
     try:
         client = create_bigquery_client_from_env()
-        
+
         # Test query
-        result = client.query("SELECT 1 as test_value")
-        print(f"✅ BigQuery connection successful!")
+        client.query("SELECT 1 as test_value")
+        print("✅ BigQuery connection successful!")
         print(f"Project: {client.project_id}")
         print(f"Dataset: {client.dataset_id}")
-        
+
     except Exception as ex:
         print(f"❌ BigQuery connection failed: {ex}")
 
@@ -81,19 +81,19 @@ def bigquery_test() -> None:
 def sync_data(
     customer_ids: str = typer.Option(..., help="Comma-separated customer IDs"),
     days_back: int = typer.Option(7, help="Number of days to sync"),
-    data_type: str = typer.Option("all", help="Data type: all, campaigns, keywords")
+    data_type: str = typer.Option("all", help="Data type: all, campaigns, keywords"),
 ) -> None:
     """Sync Google Ads data to BigQuery."""
     from src.ads.etl_pipeline import GoogleAdsETLPipeline
-    
+
     try:
         customer_list = [cid.strip() for cid in customer_ids.split(",")]
         pipeline = GoogleAdsETLPipeline()
-        
+
         print(f"Starting sync for {len(customer_list)} customers...")
         print(f"Date range: Last {days_back} days")
         print(f"Data type: {data_type}")
-        
+
         if data_type == "all":
             pipeline.full_sync(customer_list, days_back)
         elif data_type == "campaigns":
@@ -103,9 +103,9 @@ def sync_data(
         else:
             print(f"Unknown data type: {data_type}")
             return
-            
+
         print("✅ Data sync completed successfully!")
-        
+
     except Exception as ex:
         print(f"❌ Data sync failed: {ex}")
 
@@ -113,21 +113,21 @@ def sync_data(
 @app.command("backfill")
 def backfill(
     customer_ids: str = typer.Option(..., help="Comma-separated customer IDs"),
-    days_back: int = typer.Option(30, help="Number of days to backfill")
+    days_back: int = typer.Option(30, help="Number of days to backfill"),
 ) -> None:
     """Backfill historical Google Ads data to BigQuery."""
     from src.ads.etl_pipeline import backfill_data
-    
+
     try:
         customer_list = [cid.strip() for cid in customer_ids.split(",")]
-        
+
         print(f"Starting backfill for {len(customer_list)} customers...")
         print(f"Backfilling last {days_back} days...")
-        
+
         backfill_data(customer_list, days_back)
-        
+
         print("✅ Backfill completed successfully!")
-        
+
     except Exception as ex:
         print(f"❌ Backfill failed: {ex}")
 
@@ -138,49 +138,55 @@ def test_report(
 ) -> None:
     """Test Google Ads reporting for a specific customer."""
     from src.ads.reporting import ReportingManager
-    
+
     try:
         print(f"Testing reporting for customer: {customer_id}")
-        
+
         reporting_mgr = ReportingManager(customer_id)
-        
+
         # Test campaign data
         print("Fetching campaign performance...")
         campaign_df = reporting_mgr.export_campaign_performance()
         print(f"Retrieved {len(campaign_df)} campaign records")
-        
+
         # Test keyword data
         print("Fetching keyword performance...")
         keyword_df = reporting_mgr.export_keyword_performance()
         print(f"Retrieved {len(keyword_df)} keyword records")
-        
+
         print("✅ Reporting test completed!")
-        
+
         # Show sample data
         if not campaign_df.empty:
             print("\nSample campaign data:")
             print(campaign_df.head())
-            
+
     except Exception as ex:
         print(f"❌ Reporting test failed: {ex}")
 
 
 @app.command()
-
 def campaigns(
     customer_id: str = typer.Option(..., help="Google Ads customer ID"),
     action: str = typer.Option("list", help="Action: list, create, update"),
-    name: Optional[str] = typer.Option(None, help="Campaign name (for create)"),
-    budget: Optional[float] = typer.Option(None, help="Daily budget in dollars (for create)"),
-    channel: str = typer.Option("SEARCH", help="Channel for create: SEARCH|DISPLAY|VIDEO"),
-    bidding: str = typer.Option("MAXIMIZE_CONVERSIONS", help="Bidding for create: MAXIMIZE_CONVERSIONS|MAXIMIZE_CONVERSION_VALUE|MANUAL_CPC"),
-    start_date: Optional[str] = typer.Option(None, help="YYYY-MM-DD (optional)"),
-    end_date: Optional[str] = typer.Option(None, help="YYYY-MM-DD (optional)"),
+    name: str | None = typer.Option(None, help="Campaign name (for create)"),
+    budget: float
+    | None = typer.Option(None, help="Daily budget in dollars (for create)"),
+    channel: str = typer.Option(
+        "SEARCH", help="Channel for create: SEARCH|DISPLAY|VIDEO"
+    ),
+    bidding: str = typer.Option(
+        "MAXIMIZE_CONVERSIONS",
+        help="Bidding for create: MAXIMIZE_CONVERSIONS|MAXIMIZE_CONVERSION_VALUE|MANUAL_CPC",
+    ),
+    start_date: str | None = typer.Option(None, help="YYYY-MM-DD (optional)"),
+    end_date: str | None = typer.Option(None, help="YYYY-MM-DD (optional)"),
     dry_run: bool = typer.Option(True, help="validate_only for create"),
 ) -> None:
     """Manage campaigns."""
     if action == "list":
         from src.ads.campaigns import list_campaigns
+
         rows = list_campaigns(customer_id)
         if not rows:
             print("No campaigns found or unable to fetch campaigns.")
@@ -195,6 +201,7 @@ def campaigns(
 
     if action == "create":
         from src.ads.campaigns import create_campaign
+
         if not name:
             name = typer.prompt("Campaign name")
         if budget is None:
@@ -240,7 +247,9 @@ def keywords(
     print("-" * 80)
     for r in rows:
         avg_cpc = f"${r.get('avg_cpc', 0):.2f}"
-        print(f"{r['impressions']:>6} {r['clicks']:>6} {avg_cpc:>8}  {r['keyword']} [{r['match_type']}] ({r['campaign_id']}/{r['ad_group_id']})")
+        print(
+            f"{r['impressions']:>6} {r['clicks']:>6} {avg_cpc:>8}  {r['keyword']} [{r['match_type']}] ({r['campaign_id']}/{r['ad_group_id']})"
+        )
 
 
 @app.command()
@@ -259,6 +268,115 @@ def optimize(
 ) -> None:
     """Run optimization tasks."""
     pass
+
+
+@app.command("consolidate-campaigns")
+def consolidate_campaigns(
+    customer_id: str = typer.Option(..., help="Google Ads customer ID"),
+    dry_run: bool = typer.Option(True, help="Perform dry run validation only"),
+    analyze_only: bool = typer.Option(
+        False, help="Only analyze consolidation opportunities"
+    ),
+) -> None:
+    """Consolidate campaigns for Sourcegraph optimization."""
+    from src.ads.optimize import OptimizationManager
+
+    print(f"🚀 Campaign Consolidation for Customer: {customer_id}")
+    print(f"Mode: {'DRY RUN' if dry_run else 'LIVE EXECUTION'}")
+    print("-" * 50)
+
+    try:
+        optimizer = OptimizationManager(customer_id)
+
+        if analyze_only:
+            print("📊 Analyzing consolidation opportunities...")
+            analysis = optimizer.analyze_consolidation_opportunities()
+
+            if analysis.empty:
+                print("❌ No campaign data found for analysis")
+                return
+
+            print(f"\n📈 Campaign Analysis Results ({len(analysis)} campaigns):")
+            print("-" * 60)
+
+            # Show campaigns to archive
+            to_archive = analysis[analysis["should_archive"]]
+            if not to_archive.empty:
+                print(f"\n🗂️  Campaigns to Archive ({len(to_archive)}):")
+                for _, campaign in to_archive.iterrows():
+                    print(f"  ❌ {campaign['campaign_name']}")
+                    print(
+                        f"     Conversions: {campaign['conversions']:.0f}, CPA: ${campaign['cost_per_conversion']:.2f}"
+                    )
+
+            # Show consolidation targets
+            active_campaigns = analysis[~analysis["should_archive"]]
+            if not active_campaigns.empty:
+                print(
+                    f"\n🎯 Active Campaigns Consolidation Plan ({len(active_campaigns)}):"
+                )
+                for target in active_campaigns["consolidation_target"].unique():
+                    campaigns_in_group = active_campaigns[
+                        active_campaigns["consolidation_target"] == target
+                    ]
+                    print(f"\n  → {target} ({len(campaigns_in_group)} campaigns):")
+                    for _, campaign in campaigns_in_group.iterrows():
+                        print(f"    • {campaign['campaign_name']}")
+                        print(
+                            f"      Performance: {campaign['conversions']:.0f} conv, ${campaign['cost_per_conversion']:.2f} CPA"
+                        )
+
+        else:
+            print("🔄 Executing campaign consolidation...")
+            result = optimizer.consolidate_campaigns(dry_run=dry_run)
+
+            plan = result["consolidation_plan"]
+            execution = result["execution_results"]
+
+            print("\n📋 Consolidation Plan Summary:")
+            print(f"  • Campaigns to archive: {len(plan.campaigns_to_archive)}")
+            print(f"  • New campaigns to create: {len(plan.new_campaigns_to_create)}")
+            print(f"  • Budget reallocations: {len(plan.budget_reallocations)}")
+
+            print("\n✅ Execution Results:")
+            print(f"  • Created campaigns: {len(execution['created_campaigns'])}")
+            print(f"  • Archived campaigns: {len(execution['archived_campaigns'])}")
+            print(f"  • Errors: {len(execution['errors'])}")
+
+            # Show created campaigns
+            if execution["created_campaigns"]:
+                print("\n🆕 New Campaigns Created:")
+                for campaign in execution["created_campaigns"]:
+                    status = "✅ Validated" if dry_run else "🚀 Created"
+                    print(f"  {status} {campaign['name']}")
+                    budget = campaign["config"]["daily_budget_micros"] / 1_000_000
+                    print(
+                        f"    Budget: ${budget}/day, Strategy: {campaign['config']['bidding_strategy']}"
+                    )
+
+            # Show budget recommendations
+            if plan.budget_reallocations:
+                print("\n💰 Budget Reallocation Recommendations:")
+                for realloc in plan.budget_reallocations:
+                    change_pct = realloc["recommended_budget_change"] * 100
+                    direction = "📈 Increase" if change_pct > 0 else "📉 Decrease"
+                    print(
+                        f"  {direction} {abs(change_pct):.0f}%: {realloc['campaign_name']}"
+                    )
+                    print(f"    Reason: {realloc['reason']}")
+
+            # Show errors
+            if execution["errors"]:
+                print("\n❌ Errors:")
+                for error in execution["errors"]:
+                    print(f"  • {error}")
+
+            if dry_run:
+                print("\n💡 To execute for real, run with --no-dry-run")
+
+    except Exception as e:
+        print(f"❌ Error during consolidation: {e}")
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":

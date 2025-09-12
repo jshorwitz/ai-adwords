@@ -110,3 +110,7 @@ deploy:
 # Start Streamlit dashboard
 dashboard:
 	PYTHONPATH=/Users/joelhorwitz/dev/ai-adwords poetry run streamlit run src/dashboard/app.py
+
+# Run ETL sync from Google Ads to BigQuery
+etl-sync:
+	poetry run python scripts/sync_ads_to_bq.py --customers $(CUSTOMERS) --days $(DAYS)
