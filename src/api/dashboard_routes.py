@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
 from ..models.auth import User
-from .middleware import get_current_user
+from .middleware import get_current_user, get_current_user_optional
 
 logger = logging.getLogger(__name__)
 
@@ -193,6 +193,25 @@ async def get_time_series_data(
     except Exception as e:
         logger.exception("Failed to get time series data")
         return {"error": str(e)}
+
+
+# Public demo endpoints (no auth required)
+@router.get("/demo/kpis", response_model=KPIData)
+async def get_demo_kpis():
+    """Get demo KPI data (no authentication required)."""
+    return await get_kpi_data(30)
+
+
+@router.get("/demo/platforms", response_model=List[PlatformPerformance])
+async def get_demo_platforms():
+    """Get demo platform data (no authentication required)."""
+    return await get_platform_performance(30)
+
+
+@router.get("/demo/summary", response_model=DashboardSummary)
+async def get_demo_summary():
+    """Get demo dashboard summary (no authentication required)."""
+    return get_mock_dashboard_summary()
 
 
 # Internal helper functions

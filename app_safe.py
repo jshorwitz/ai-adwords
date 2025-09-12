@@ -81,28 +81,63 @@ app.add_middleware(
 )
 
 
+@app.get("/", response_class=HTMLResponse)
+async def homepage(request: Request):
+    """Nike-inspired homepage with signup/login."""
+    try:
+        return templates.TemplateResponse("homepage.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Failed to render homepage: {e}")
+        return HTMLResponse(content=f"<h1>Homepage Error: {e}</h1>", status_code=500)
+
+
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_view(request: Request):
-    """Main dashboard UI."""
+    """Main dashboard UI (protected)."""
     try:
+        # Check if user is authenticated via session cookie
+        session_token = request.cookies.get("sid")
+        if not session_token:
+            # Redirect to homepage for login
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(url="/", status_code=302)
+        
+        # TODO: Validate session token with auth service
+        # For now, just serve the dashboard
+        
         return templates.TemplateResponse("dashboard.html", {"request": request})
     except Exception as e:
         logger.error(f"Failed to render dashboard: {e}")
         return HTMLResponse(content=f"<h1>Dashboard Error: {e}</h1>", status_code=500)
 
 
-@app.get("/")
-def read_root():
-    """Root endpoint."""
+@app.get("/demo", response_class=HTMLResponse)
+async def demo_dashboard(request: Request):
+    """Demo dashboard for unauthenticated users."""
+    try:
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request,
+            "demo_mode": True
+        })
+    except Exception as e:
+        logger.error(f"Failed to render demo dashboard: {e}")
+        return HTMLResponse(content=f"<h1>Demo Error: {e}</h1>", status_code=500)
+
+
+@app.get("/api")
+def api_info():
+    """API information endpoint."""
     return {
-        "message": "🚀 AI AdWords Platform is Live!",
+        "message": "🚀 AI AdWords Platform API",
         "service": "ai-adwords-platform",
         "version": "1.0.0",
         "endpoints": {
+            "homepage": "/",
             "dashboard": "/dashboard",
             "health": "/health",
             "docs": "/docs",
             "agents": "/agents/health",
+            "auth": "/auth/*",
         }
     }
 

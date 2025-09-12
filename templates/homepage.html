@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI AdWords - Autonomous Cross-Platform Ad Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/homepage.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <i class="fas fa-chart-line"></i>
+                <span>AI ADWORDS</span>
+            </div>
+            <div class="nav-actions">
+                <button id="loginBtn" class="btn btn-secondary">LOGIN</button>
+                <button id="signupBtn" class="btn btn-primary">GET STARTED</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    AUTONOMOUS
+                    <span class="hero-title-accent">AD MANAGEMENT</span>
+                    ACROSS ALL PLATFORMS
+                </h1>
+                <p class="hero-subtitle">
+                    AI-powered agents optimize your Google Ads, Reddit Ads, and X campaigns 24/7. 
+                    Maximize ROAS with autonomous budget optimization and cross-platform attribution.
+                </p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">7</div>
+                        <div class="stat-label">AI AGENTS</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">PLATFORMS</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">OPTIMIZATION</div>
+                    </div>
+                </div>
+                <div class="hero-cta">
+                    <button id="heroSignupBtn" class="btn btn-primary btn-hero">
+                        START OPTIMIZING NOW
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button id="heroDemoBtn" class="btn btn-secondary-outline">
+                        VIEW LIVE DEMO
+                    </button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-dashboard-preview">
+                    <div class="dashboard-mockup">
+                        <div class="mockup-header">
+                            <div class="mockup-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <div class="mockup-title">AI ADWORDS DASHBOARD</div>
+                        </div>
+                        <div class="mockup-content">
+                            <div class="mockup-kpis">
+                                <div class="mockup-kpi">
+                                    <div class="kpi-value">$45.2K</div>
+                                    <div class="kpi-label">TOTAL SPEND</div>
+                                </div>
+                                <div class="mockup-kpi">
+                                    <div class="kpi-value">3.2x</div>
+                                    <div class="kpi-label">AVG ROAS</div>
+                                </div>
+                                <div class="mockup-kpi">
+                                    <div class="kpi-value">127K</div>
+                                    <div class="kpi-label">CLICKS</div>
+                                </div>
+                            </div>
+                            <div class="mockup-chart">
+                                <div class="chart-bars">
+                                    <div class="bar" style="height: 80%"></div>
+                                    <div class="bar" style="height: 60%"></div>
+                                    <div class="bar" style="height: 95%"></div>
+                                    <div class="bar" style="height: 40%"></div>
+                                    <div class="bar" style="height: 75%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="features-content">
+            <h2 class="section-title">AUTONOMOUS AGENT SYSTEM</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3>DATA INGESTION</h3>
+                    <p>Automated data collection from Google Ads, Reddit Ads, and X/Twitter Ads every 2 hours with real-time normalization.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI OPTIMIZATION</h3>
+                    <p>Intelligent budget adjustments based on CAC/ROAS analysis with ±15% scaling and automatic bid management.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <h3>CONVERSION TRACKING</h3>
+                    <p>Enhanced conversions uploaded to all platforms using GCLID, WBRAID, and platform-specific conversion APIs.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-network"></i>
+                    </div>
+                    <h3>ATTRIBUTION</h3>
+                    <p>Cross-platform touchpoint attribution from events to conversions with real-time analysis and reporting.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-overlay" id="modalOverlay"></div>
+        <div class="modal-container">
+            <button class="modal-close" id="modalClose">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <div class="auth-header">
+                    <h2>WELCOME BACK</h2>
+                    <p>Sign in to your AI AdWords dashboard</p>
+                </div>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="loginEmail">EMAIL ADDRESS</label>
+                        <input type="email" id="loginEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">PASSWORD</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">
+                        SIGN IN
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+                <div class="auth-divider">
+                    <span>OR</span>
+                </div>
+                <button id="magicLinkBtn" class="btn btn-secondary-outline btn-full">
+                    <i class="fas fa-magic"></i>
+                    SIGN IN WITH MAGIC LINK
+                </button>
+                <div class="auth-switch">
+                    <p>Don't have an account? <a href="#" id="showSignup">Sign up here</a></p>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signupForm" class="auth-form hidden">
+                <div class="auth-header">
+                    <h2>GET STARTED</h2>
+                    <p>Create your AI AdWords account</p>
+                </div>
+                <form id="signupFormElement">
+                    <div class="form-group">
+                        <label for="signupName">FULL NAME</label>
+                        <input type="text" id="signupName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">EMAIL ADDRESS</label>
+                        <input type="email" id="signupEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">PASSWORD</label>
+                        <input type="password" id="signupPassword" name="password" required>
+                        <small class="form-help">Minimum 12 characters with mixed case, numbers, and symbols</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">
+                        CREATE ACCOUNT
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+                <div class="auth-divider">
+                    <span>OR</span>
+                </div>
+                <button id="signupMagicLinkBtn" class="btn btn-secondary-outline btn-full">
+                    <i class="fas fa-magic"></i>
+                    SIGN UP WITH MAGIC LINK
+                </button>
+                <div class="auth-switch">
+                    <p>Already have an account? <a href="#" id="showLogin">Sign in here</a></p>
+                </div>
+            </div>
+
+            <!-- Magic Link Form -->
+            <div id="magicLinkForm" class="auth-form hidden">
+                <div class="auth-header">
+                    <h2>MAGIC LINK</h2>
+                    <p>Enter your email to receive a secure login link</p>
+                </div>
+                <form id="magicLinkFormElement">
+                    <div class="form-group">
+                        <label for="magicEmail">EMAIL ADDRESS</label>
+                        <input type="email" id="magicEmail" name="email" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">
+                        SEND MAGIC LINK
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <div class="auth-switch">
+                    <p><a href="#" id="backToLogin">Back to login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <!-- Scripts -->
+    <script src="/static/js/homepage.js"></script>
+</body>
+</html>
