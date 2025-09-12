@@ -779,6 +779,124 @@ section h2 i {
     margin-right: 6px;
 }
 
+/* AI Agency Specialists */
+.specialists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.specialist-card {
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    padding: 2rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.specialist-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-intense);
+    border-color: var(--primary-color);
+}
+
+.specialist-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    transition: all 0.3s;
+}
+
+.strategist-card::before { background: var(--primary-color); }
+.copywriter-card::before { background: var(--accent-color); }
+.analyst-card::before { background: var(--success-color); }
+.researcher-card::before { background: var(--secondary-color); }
+
+.specialist-card:hover::before {
+    height: 6px;
+}
+
+.specialist-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.strategist-card .specialist-icon { background: var(--gradient-primary); }
+.copywriter-card .specialist-icon { background: var(--gradient-accent); }
+.analyst-card .specialist-icon { background: var(--gradient-success); }
+.researcher-card .specialist-icon { background: linear-gradient(135deg, var(--secondary-color), #666666); }
+
+.specialist-card:hover .specialist-icon {
+    transform: scale(1.1);
+}
+
+.specialist-info {
+    flex: 1;
+    margin-bottom: 1.5rem;
+}
+
+.specialist-info h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.specialist-info p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.specialist-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--success-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.specialist-btn {
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.75rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.specialist-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
 /* Agents Grid */
 .agents-grid {
     display: grid;

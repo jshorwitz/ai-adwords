@@ -218,6 +218,14 @@ try:
 except Exception as e:
     logger.warning(f"⚠️ Onboarding routes failed to load: {e}")
 
+# Include AI agency routes (safe)
+try:
+    from src.api.ai_agency_routes import router as ai_agency_router
+    app.include_router(ai_agency_router)
+    logger.info("✅ AI Agency routes loaded")
+except Exception as e:
+    logger.warning(f"⚠️ AI Agency routes failed to load: {e}")
+
 
 if __name__ == "__main__":
     import uvicorn
