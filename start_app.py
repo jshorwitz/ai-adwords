@@ -77,7 +77,7 @@ def main():
     # Get configuration from environment
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
-    reload = os.getenv("RELOAD", "true").lower() == "true"
+    reload = os.getenv("RELOAD", "false").lower() == "true"  # Disable reload in production
     log_level = os.getenv("LOG_LEVEL", "info").lower()
     
     logger.info(f"🌐 Starting server on {host}:{port}")

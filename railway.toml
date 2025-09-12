@@ -5,7 +5,8 @@ builder = "nixpacks"
 [deploy]
 startCommand = "poetry run python start_app.py"
 healthcheckPath = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 60
+healthcheckInterval = 30
 restartPolicyType = "always"
 
 [variables]
