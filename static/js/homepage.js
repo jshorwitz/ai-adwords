@@ -65,30 +65,12 @@ class Homepage {
             this.switchForm('magicLink');
         });
 
-        // SSO buttons - Login form
-        document.getElementById('googleSSOBtn').addEventListener('click', () => {
-            this.handleOAuthLogin('google');
-        });
-
-        document.getElementById('redditSSOBtn').addEventListener('click', () => {
-            this.handleOAuthLogin('reddit');
-        });
-
-        document.getElementById('xSSOBtn').addEventListener('click', () => {
-            this.handleOAuthLogin('twitter');
-        });
-
-        // SSO buttons - Signup form
-        document.getElementById('signupGoogleSSOBtn').addEventListener('click', () => {
-            this.handleOAuthLogin('google');
-        });
-
-        document.getElementById('signupRedditSSOBtn').addEventListener('click', () => {
-            this.handleOAuthLogin('reddit');
-        });
-
-        document.getElementById('signupXSSOBtn').addEventListener('click', () => {
-            this.handleOAuthLogin('twitter');
+        // SSO buttons - Universal handler
+        document.querySelectorAll('.sso-login, .sso-signup').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const provider = e.target.closest('button').dataset.provider;
+                this.handleOAuthLogin(provider);
+            });
         });
 
         // Form submissions
@@ -162,6 +144,7 @@ class Homepage {
 
     async handleLogin(e) {
         e.preventDefault();
+        this.clearFormErrors();
         
         const formData = new FormData(e.target);
         const loginData = {
@@ -169,7 +152,17 @@ class Homepage {
             password: formData.get('password')
         };
 
-        this.setButtonLoading(e.target.querySelector('button[type="submit"]'), true);
+        // Basic validation
+        if (!loginData.email) {
+            this.showFieldError('email', 'Email is required');
+            return;
+        }
+        if (!loginData.password) {
+            this.showFieldError('password', 'Password is required');
+            return;
+        }
+
+        this.setButtonLoading(e.target.querySelector('button[type="submit"]'), true, 'SIGNING IN...');
 
         try {
             const response = await fetch('/auth/login', {
@@ -184,15 +177,15 @@ class Homepage {
             const result = await response.json();
 
             if (response.ok) {
-                this.showMessage('Login successful! Redirecting...', 'success');
+                this.showMessage('Welcome back! Redirecting to dashboard...', 'success');
                 setTimeout(() => {
                     this.goToDashboard();
-                }, 1500);
+                }, 1200);
             } else {
-                this.showMessage(result.detail || 'Login failed. Please check your credentials.', 'error');
+                this.showMessage(result.detail || 'Invalid email or password.', 'error');
             }
         } catch (error) {
-            this.showMessage('Network error. Please try again.', 'error');
+            this.showMessage('Connection error. Please check your internet and try again.', 'error');
         } finally {
             this.setButtonLoading(e.target.querySelector('button[type="submit"]'), false);
         }
@@ -276,15 +269,43 @@ class Homepage {
         }
     }
 
-    setButtonLoading(button, loading) {
+    setButtonLoading(button, loading, loadingText = 'PROCESSING...') {
         if (loading) {
             button.disabled = true;
+            button.style.opacity = '0.7';
             const originalText = button.innerHTML;
             button.dataset.originalText = originalText;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSING...';
+            button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
         } else {
             button.disabled = false;
+            button.style.opacity = '1';
             button.innerHTML = button.dataset.originalText;
+        }
+    }
+
+    clearFormErrors() {
+        // Remove any existing error styling
+        document.querySelectorAll('.form-group input').forEach(input => {
+            input.classList.remove('error');
+        });
+        document.querySelectorAll('.form-error').forEach(error => {
+            error.remove();
+        });
+    }
+
+    showFieldError(fieldName, message) {
+        const input = document.querySelector(`input[name="${fieldName}"]`);
+        if (input) {
+            input.classList.add('error');
+            
+            // Add error message
+            let errorEl = input.parentElement.querySelector('.form-error');
+            if (!errorEl) {
+                errorEl = document.createElement('div');
+                errorEl.className = 'form-error';
+                input.parentElement.appendChild(errorEl);
+            }
+            errorEl.textContent = message;
         }
     }
 

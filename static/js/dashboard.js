@@ -19,6 +19,22 @@ class Dashboard {
         document.getElementById('refreshBtn').addEventListener('click', () => {
             this.refreshData();
         });
+
+        // User menu functionality
+        document.getElementById('userMenuBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleUserMenu();
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            this.handleLogout();
+        });
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', () => {
+            this.closeUserMenu();
+        });
     }
 
     showLoading() {
@@ -31,8 +47,9 @@ class Dashboard {
 
     async loadDashboardData() {
         try {
-            // Load all dashboard data
-            const [kpiData, platformData, agentData, activityData] = await Promise.all([
+            // Load user info and dashboard data
+            const [userData, kpiData, platformData, agentData, activityData] = await Promise.all([
+                this.fetchUserData(),
                 this.fetchKPIData(),
                 this.fetchPlatformData(),
                 this.fetchAgentData(),
@@ -40,6 +57,7 @@ class Dashboard {
             ]);
 
             // Update UI with data
+            if (userData) this.updateUserInfo(userData);
             this.updateKPICards(kpiData);
             this.updatePlatformCards(platformData);
             this.updateChart(platformData);
@@ -50,6 +68,53 @@ class Dashboard {
         } catch (error) {
             console.error('Error loading dashboard data:', error);
             this.showError('Failed to load dashboard data');
+        }
+    }
+
+    async fetchUserData() {
+        try {
+            const response = await fetch('/auth/me');
+            if (response.ok) {
+                return await response.json();
+            }
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+        }
+        return null;
+    }
+
+    updateUserInfo(userData) {
+        if (userData) {
+            document.getElementById('userName').textContent = userData.name || userData.email;
+        }
+    }
+
+    toggleUserMenu() {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.classList.toggle('show');
+    }
+
+    closeUserMenu() {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.classList.remove('show');
+    }
+
+    async handleLogout() {
+        try {
+            const response = await fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                // Redirect to homepage
+                window.location.href = '/';
+            } else {
+                this.showError('Logout failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error during logout:', error);
+            this.showError('Network error during logout.');
         }
     }
 
