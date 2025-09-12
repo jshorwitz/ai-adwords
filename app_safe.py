@@ -175,14 +175,14 @@ try:
     logger.info("✅ Simplified auth routes loaded")
 except Exception as e:
     logger.warning(f"⚠️ Auth routes failed to load: {e}")
-    # Create basic auth endpoints as fallback
-    @app.post("/auth/signup")
-    async def fallback_signup():
-        return {"message": "Signup endpoint available but auth system not loaded"}
-    
-    @app.post("/auth/login") 
-    async def fallback_login():
-        return {"message": "Login endpoint available but auth system not loaded"}
+
+# Include OAuth routes  
+try:
+    from src.api.oauth_routes import router as oauth_router
+    app.include_router(oauth_router)
+    logger.info("✅ OAuth routes loaded")
+except Exception as e:
+    logger.warning(f"⚠️ OAuth routes failed to load: {e}")
 
 # Include agent routes (safe)
 try:

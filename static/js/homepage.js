@@ -65,6 +65,32 @@ class Homepage {
             this.switchForm('magicLink');
         });
 
+        // SSO buttons - Login form
+        document.getElementById('googleSSOBtn').addEventListener('click', () => {
+            this.handleOAuthLogin('google');
+        });
+
+        document.getElementById('redditSSOBtn').addEventListener('click', () => {
+            this.handleOAuthLogin('reddit');
+        });
+
+        document.getElementById('xSSOBtn').addEventListener('click', () => {
+            this.handleOAuthLogin('twitter');
+        });
+
+        // SSO buttons - Signup form
+        document.getElementById('signupGoogleSSOBtn').addEventListener('click', () => {
+            this.handleOAuthLogin('google');
+        });
+
+        document.getElementById('signupRedditSSOBtn').addEventListener('click', () => {
+            this.handleOAuthLogin('reddit');
+        });
+
+        document.getElementById('signupXSSOBtn').addEventListener('click', () => {
+            this.handleOAuthLogin('twitter');
+        });
+
         // Form submissions
         document.getElementById('loginFormElement').addEventListener('submit', (e) => {
             this.handleLogin(e);
@@ -299,6 +325,14 @@ class Homepage {
 
     goToDemo() {
         window.location.href = '/demo';
+    }
+
+    handleOAuthLogin(provider) {
+        // Show loading state
+        this.showMessage(`Connecting to ${provider.charAt(0).toUpperCase() + provider.slice(1)}...`, 'info');
+        
+        // Redirect to OAuth endpoint
+        window.location.href = `/auth/${provider}`;
     }
 
     animateHeroElements() {
