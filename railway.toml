@@ -18,9 +18,13 @@ LOG_LEVEL = "info"
 RELOAD = "false"
 
 # Safety settings - disable real API calls initially
-MOCK_REDDIT = "true"
+MOCK_REDDIT = "false"
 MOCK_TWITTER = "true" 
 ENABLE_REAL_MUTATES = "false"
+
+# Reddit API credentials
+REDDIT_CLIENT_ID = "mDSnWlcEn17omHHxElhLzg"
+REDDIT_CLIENT_SECRET = "XF74NzwNIexlLltp_dimfdFqzJlYTA"
 
 # Generated DATABASE_URL will be provided by Railway PostgreSQL addon
 # Generated SECRET_KEY will be provided by Railway
