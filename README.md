@@ -38,3 +38,4 @@ ADS_USE_MOCK=1 poetry run python -m src.cli accounts
 
 When ready to hit the real API, unset `ADS_USE_MOCK` and provide credentials via `.env` (see `.env.template`).
 
+# Force redeploy Thu Sep 25 16:47:14 PDT 2025
