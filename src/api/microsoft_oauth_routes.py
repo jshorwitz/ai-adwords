@@ -18,9 +18,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth/microsoft", tags=["microsoft-auth"])
 
-# Microsoft OAuth endpoints
-MICROSOFT_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-MICROSOFT_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+# Microsoft OAuth endpoints - will use tenant-specific URLs when tenant ID is available
+def get_microsoft_auth_url():
+    tenant_id = os.getenv("MICROSOFT_ADS_TENANT_ID", "common")
+    return f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize"
+
+def get_microsoft_token_url():
+    tenant_id = os.getenv("MICROSOFT_ADS_TENANT_ID", "common")
+    return f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
 
 # Required scopes for Microsoft Advertising API
 MICROSOFT_SCOPES = [
@@ -68,7 +73,7 @@ async def microsoft_oauth_start(
         "response_mode": "query"
     }
     
-    auth_url = f"{MICROSOFT_AUTH_URL}?{urlencode(auth_params)}"
+    auth_url = f"{get_microsoft_auth_url()}?{urlencode(auth_params)}"
     
     logger.info(f"🔗 Starting Microsoft OAuth for user {current_user.id}")
     return RedirectResponse(url=auth_url)
@@ -155,7 +160,7 @@ async def exchange_code_for_tokens(request: Request, code: str) -> Optional[Dict
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                MICROSOFT_TOKEN_URL,
+                get_microsoft_token_url(),
                 data=token_data,
                 headers={"Content-Type": "application/x-www-form-urlencoded"}
             ) as response:
