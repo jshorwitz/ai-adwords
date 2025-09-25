@@ -34,6 +34,11 @@ MICROSOFT_ADS_CLIENT_ID = "7f33a26a-c05d-4750-b3f9-2b429dfebdf9"
 MICROSOFT_ADS_TENANT_ID = "3630fc6e-1576-4ffa-bdd1-5be49726d818"
 MICROSOFT_ADS_CLIENT_SECRET = "33ee494a-556b-4b27-8c25-bf95ec965ab6"
 
+# BigQuery configuration (set via Railway dashboard or CLI)
+# GOOGLE_CLOUD_PROJECT = "your-gcp-project-id"  
+# BIGQUERY_DATASET_ID = "google_ads_data"
+# GOOGLE_APPLICATION_CREDENTIALS will be set via service account JSON in Railway
+
 # Generated DATABASE_URL will be provided by Railway PostgreSQL addon
 # Generated SECRET_KEY will be provided by Railway
 
