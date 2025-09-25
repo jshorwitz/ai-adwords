@@ -13,7 +13,8 @@ async def get_environment_variables():
     # Only show non-sensitive environment variables
     env_vars = {
         "MOCK_REDDIT": os.getenv("MOCK_REDDIT", "NOT_SET"),
-        "MOCK_TWITTER": os.getenv("MOCK_TWITTER", "NOT_SET"), 
+        "MOCK_MICROSOFT": os.getenv("MOCK_MICROSOFT", "NOT_SET"),
+        "MOCK_LINKEDIN": os.getenv("MOCK_LINKEDIN", "NOT_SET"), 
         "ENABLE_REAL_MUTATES": os.getenv("ENABLE_REAL_MUTATES", "NOT_SET"),
         "REDDIT_CLIENT_ID": "SET" if os.getenv("REDDIT_CLIENT_ID") else "NOT_SET",
         "REDDIT_CLIENT_SECRET": "SET" if os.getenv("REDDIT_CLIENT_SECRET") else "NOT_SET",
@@ -38,7 +39,8 @@ async def get_platform_status():
     """Get platform status calculation."""
     
     reddit_status = "mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
-    twitter_status = "mock" if os.getenv("MOCK_TWITTER", "true").lower() == "true" else "active"
+    microsoft_status = "mock" if os.getenv("MOCK_MICROSOFT", "true").lower() == "true" else "active"
+    linkedin_status = "mock" if os.getenv("MOCK_LINKEDIN", "true").lower() == "true" else "active"
     google_status = "active" if os.getenv("GOOGLE_ADS_CLIENT_ID") else "mock"
     
     return {
@@ -48,10 +50,15 @@ async def get_platform_status():
                 "mock_env": os.getenv("MOCK_REDDIT", "true"),
                 "has_credentials": bool(os.getenv("REDDIT_CLIENT_ID"))
             },
-            "twitter": {
-                "status": twitter_status,
-                "mock_env": os.getenv("MOCK_TWITTER", "true"), 
-                "has_credentials": bool(os.getenv("TWITTER_API_KEY"))
+            "microsoft": {
+                "status": microsoft_status,
+                "mock_env": os.getenv("MOCK_MICROSOFT", "true"), 
+                "has_credentials": bool(os.getenv("MICROSOFT_CLIENT_ID"))
+            },
+            "linkedin": {
+                "status": linkedin_status,
+                "mock_env": os.getenv("MOCK_LINKEDIN", "true"), 
+                "has_credentials": bool(os.getenv("LINKEDIN_CLIENT_ID"))
             },
             "google": {
                 "status": google_status,

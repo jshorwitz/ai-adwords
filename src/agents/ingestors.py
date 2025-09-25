@@ -280,31 +280,31 @@ class RedditIngestorAgent(IngestorAgent):
             )
 
 
-class XIngestorAgent(IngestorAgent):
-    """Ingests X/Twitter Ads metrics (mockable)."""
+class MicrosoftIngestorAgent(IngestorAgent):
+    """Ingests Microsoft Ads metrics (mockable)."""
     
-    def __init__(self, agent_name: str = "ingestor-x"):
-        super().__init__(agent_name, "x")
+    def __init__(self, agent_name: str = "ingestor-microsoft"):
+        super().__init__(agent_name, "microsoft")
     
     async def run(self, job_input: AgentJobInput) -> AgentResult:
-        """Pull X/Twitter Ads metrics or generate mock data."""
+        """Pull Microsoft Ads metrics or generate mock data."""
         
         try:
             start_date, end_date = self.get_date_range(job_input)
-            self.logger.info(f"Ingesting X/Twitter Ads data for {start_date} to {end_date}")
+            self.logger.info(f"Ingesting Microsoft Ads data for {start_date} to {end_date}")
             
             # Check if we should use mock data
             import os
-            use_mock = os.getenv("MOCK_TWITTER", "true").lower() == "true"  # Default to mock
+            use_mock = os.getenv("MOCK_MICROSOFT", "true").lower() == "true"  # Default to mock
             
             if use_mock or job_input.dry_run:
                 return await self._generate_mock_data(job_input, start_date, end_date)
             
-            # TODO: Implement actual X Ads API integration
-            return await self._fetch_x_ads_data(job_input, start_date, end_date)
+            # TODO: Implement actual Microsoft Ads API integration
+            return await self._fetch_microsoft_ads_data(job_input, start_date, end_date)
             
         except Exception as e:
-            self.logger.exception("Failed to ingest X Ads data")
+            self.logger.exception("Failed to ingest Microsoft Ads data")
             return self.create_result(
                 job_input,
                 ok=False,
@@ -314,35 +314,35 @@ class XIngestorAgent(IngestorAgent):
     async def _generate_mock_data(
         self, job_input: AgentJobInput, start_date: str, end_date: str
     ) -> AgentResult:
-        """Generate deterministic mock X Ads data."""
+        """Generate deterministic mock Microsoft Ads data."""
         
         import random
-        random.seed(123)  # Different seed for X vs Reddit
+        random.seed(789)  # Different seed for Microsoft
         
         mock_records = []
         current_date = datetime.fromisoformat(start_date)
         end_date_obj = datetime.fromisoformat(end_date)
         
         while current_date <= end_date_obj:
-            for campaign_id in ["x_camp_1", "x_camp_2", "x_camp_3"]:
+            for campaign_id in ["ms_camp_1", "ms_camp_2"]:
                 mock_record = {
-                    "platform": "x",
+                    "platform": "microsoft",
                     "date": current_date.date().isoformat(),
-                    "account_id": "x_account_456",
+                    "account_id": "microsoft_account_789",
                     "campaign_id": campaign_id,
-                    "campaign_name": f"X Campaign {campaign_id}",
-                    "impressions": random.randint(2000, 20000),
-                    "clicks": random.randint(100, 1000),
-                    "spend_usd": round(random.uniform(200, 2000), 2),
-                    "conversions": random.randint(2, 30),
-                    "raw_data": {"mock": True, "platform": "x"},
+                    "campaign_name": f"Microsoft Campaign {campaign_id}",
+                    "impressions": random.randint(1500, 15000),
+                    "clicks": random.randint(80, 800),
+                    "spend_usd": round(random.uniform(150, 1500), 2),
+                    "conversions": random.randint(3, 25),
+                    "raw_data": {"mock": True, "platform": "microsoft"},
                     "ingested_at": datetime.now().isoformat(),
                 }
                 mock_records.append(mock_record)
             
             current_date += timedelta(days=1)
         
-        self.logger.info(f"Generated {len(mock_records)} mock X records")
+        self.logger.info(f"Generated {len(mock_records)} mock Microsoft records")
         
         return self.create_result(
             job_input,
@@ -352,26 +352,118 @@ class XIngestorAgent(IngestorAgent):
                 "date_range_days": (end_date_obj - datetime.fromisoformat(start_date)).days + 1,
             },
             records_written=len(mock_records),
-            notes=["Mock X/Twitter data generated successfully"],
+            notes=["Mock Microsoft Ads data generated successfully"],
         )
     
-    async def _fetch_x_ads_data(
+    async def _fetch_microsoft_ads_data(
         self, job_input: AgentJobInput, start_date: str, end_date: str
     ) -> AgentResult:
-        """Fetch actual X Ads data."""
+        """Fetch actual Microsoft Ads data."""
         
-        # TODO: Implement X Ads API integration
-        # This would call X's Ads Analytics endpoints
+        # TODO: Implement Microsoft Ads API integration
+        # This would call Microsoft Advertising API endpoints
         
-        self.logger.warning("X Ads API integration not yet implemented")
+        self.logger.warning("Microsoft Ads API integration not yet implemented")
         return self.create_result(
             job_input,
             ok=False,
-            error="X Ads API integration not implemented",
+            error="Microsoft Ads API integration not implemented",
+        )
+
+
+class LinkedInIngestorAgent(IngestorAgent):
+    """Ingests LinkedIn Ads metrics (mockable)."""
+    
+    def __init__(self, agent_name: str = "ingestor-linkedin"):
+        super().__init__(agent_name, "linkedin")
+    
+    async def run(self, job_input: AgentJobInput) -> AgentResult:
+        """Pull LinkedIn Ads metrics or generate mock data."""
+        
+        try:
+            start_date, end_date = self.get_date_range(job_input)
+            self.logger.info(f"Ingesting LinkedIn Ads data for {start_date} to {end_date}")
+            
+            # Check if we should use mock data
+            import os
+            use_mock = os.getenv("MOCK_LINKEDIN", "true").lower() == "true"  # Default to mock
+            
+            if use_mock or job_input.dry_run:
+                return await self._generate_mock_data(job_input, start_date, end_date)
+            
+            # TODO: Implement actual LinkedIn Ads API integration
+            return await self._fetch_linkedin_ads_data(job_input, start_date, end_date)
+            
+        except Exception as e:
+            self.logger.exception("Failed to ingest LinkedIn Ads data")
+            return self.create_result(
+                job_input,
+                ok=False,
+                error=str(e),
+            )
+    
+    async def _generate_mock_data(
+        self, job_input: AgentJobInput, start_date: str, end_date: str
+    ) -> AgentResult:
+        """Generate deterministic mock LinkedIn Ads data."""
+        
+        import random
+        random.seed(456)  # Different seed for LinkedIn
+        
+        mock_records = []
+        current_date = datetime.fromisoformat(start_date)
+        end_date_obj = datetime.fromisoformat(end_date)
+        
+        while current_date <= end_date_obj:
+            for campaign_id in ["li_camp_1", "li_camp_2"]:
+                mock_record = {
+                    "platform": "linkedin",
+                    "date": current_date.date().isoformat(),
+                    "account_id": "linkedin_account_101",
+                    "campaign_id": campaign_id,
+                    "campaign_name": f"LinkedIn Campaign {campaign_id}",
+                    "impressions": random.randint(800, 8000),
+                    "clicks": random.randint(30, 300),
+                    "spend_usd": round(random.uniform(80, 800), 2),
+                    "conversions": random.randint(2, 15),
+                    "raw_data": {"mock": True, "platform": "linkedin"},
+                    "ingested_at": datetime.now().isoformat(),
+                }
+                mock_records.append(mock_record)
+            
+            current_date += timedelta(days=1)
+        
+        self.logger.info(f"Generated {len(mock_records)} mock LinkedIn records")
+        
+        return self.create_result(
+            job_input,
+            ok=True,
+            metrics={
+                "mock_records_generated": len(mock_records),
+                "date_range_days": (end_date_obj - datetime.fromisoformat(start_date)).days + 1,
+            },
+            records_written=len(mock_records),
+            notes=["Mock LinkedIn Ads data generated successfully"],
+        )
+    
+    async def _fetch_linkedin_ads_data(
+        self, job_input: AgentJobInput, start_date: str, end_date: str
+    ) -> AgentResult:
+        """Fetch actual LinkedIn Ads data."""
+        
+        # TODO: Implement LinkedIn Ads API integration
+        # This would call LinkedIn Marketing API endpoints
+        
+        self.logger.warning("LinkedIn Ads API integration not yet implemented")
+        return self.create_result(
+            job_input,
+            ok=False,
+            error="LinkedIn Ads API integration not implemented",
         )
 
 
 # Register all ingestor agents
 agent_registry.register("ingestor-google", GoogleIngestorAgent)
 agent_registry.register("ingestor-reddit", RedditIngestorAgent)
-agent_registry.register("ingestor-x", XIngestorAgent)
+agent_registry.register("ingestor-microsoft", MicrosoftIngestorAgent)
+agent_registry.register("ingestor-linkedin", LinkedInIngestorAgent)

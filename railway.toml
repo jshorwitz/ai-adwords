@@ -19,7 +19,8 @@ RELOAD = "false"
 
 # Safety settings - disable real API calls initially
 MOCK_REDDIT = "false"
-MOCK_TWITTER = "true" 
+MOCK_MICROSOFT = "true"
+MOCK_LINKEDIN = "true"
 ENABLE_REAL_MUTATES = "false"
 
 # Reddit API credentials

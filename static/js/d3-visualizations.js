@@ -4,15 +4,17 @@ class D3Visualizations {
     constructor() {
         // Nike-inspired color palette for platforms
         this.colors = {
-            google: '#000000',    // Nike black
-            reddit: '#ff6b35',    // Nike orange accent  
-            x: '#9C9C9C'         // Nike medium gray
+            google: '#000000',      // Nike black
+            reddit: '#ff6b35',      // Nike orange accent  
+            microsoft: '#0078D4',   // Microsoft Blue
+            linkedin: '#0077B5'     // LinkedIn Blue
         };
         
         this.colorGradients = {
             google: ['#000000', '#333333'],
             reddit: ['#ff6b35', '#ff8c42'],
-            x: ['#9C9C9C', '#666666']
+            microsoft: ['#0078D4', '#106ebe'],
+            linkedin: ['#0077B5', '#005885']
         };
         
         this.tooltip = this.createTooltip();
@@ -405,7 +407,7 @@ class D3Visualizations {
             .range([0, width]);
 
         const y = d3.scaleLinear()
-            .domain([0, d3.max(timeData, d => Math.max(d.google, d.reddit, d.x)) * 1.1])
+            .domain([0, d3.max(timeData, d => Math.max(d.google, d.reddit, d.microsoft, d.linkedin)) * 1.1])
             .range([height, 0]);
 
         // Line generators
@@ -419,9 +421,14 @@ class D3Visualizations {
             .y(d => y(d.reddit))
             .curve(d3.curveMonotoneX);
 
-        const lineX = d3.line()
+        const lineMicrosoft = d3.line()
             .x(d => x(d.date))
-            .y(d => y(d.x))
+            .y(d => y(d.microsoft))
+            .curve(d3.curveMonotoneX);
+
+        const lineLinkedIn = d3.line()
+            .x(d => x(d.date))
+            .y(d => y(d.linkedin))
             .curve(d3.curveMonotoneX);
 
         // Add grid lines
@@ -457,10 +464,10 @@ class D3Visualizations {
             .delay(500)
             .style('stroke-dashoffset', 0);
 
-        const pathX = g.append('path')
+        const pathMicrosoft = g.append('path')
             .datum(timeData)
-            .attr('class', 'line x')
-            .attr('d', lineX)
+            .attr('class', 'line microsoft')
+            .attr('d', lineMicrosoft)
             .style('stroke-dasharray', function() { return this.getTotalLength(); })
             .style('stroke-dashoffset', function() { return this.getTotalLength(); })
             .transition()
@@ -468,8 +475,19 @@ class D3Visualizations {
             .delay(1000)
             .style('stroke-dashoffset', 0);
 
+        const pathLinkedIn = g.append('path')
+            .datum(timeData)
+            .attr('class', 'line linkedin')
+            .attr('d', lineLinkedIn)
+            .style('stroke-dasharray', function() { return this.getTotalLength(); })
+            .style('stroke-dashoffset', function() { return this.getTotalLength(); })
+            .transition()
+            .duration(2000)
+            .delay(1500)
+            .style('stroke-dashoffset', 0);
+
         // Add dots
-        ['google', 'reddit', 'x'].forEach((platform, platformIndex) => {
+        ['google', 'reddit', 'microsoft', 'linkedin'].forEach((platform, platformIndex) => {
             g.selectAll(`.dot.${platform}`)
                 .data(timeData)
                 .enter()
@@ -512,7 +530,8 @@ class D3Visualizations {
         const platforms = [
             {platform: 'google', name: 'Google Ads'},
             {platform: 'reddit', name: 'Reddit Ads'}, 
-            {platform: 'x', name: 'X Ads'}
+            {platform: 'microsoft', name: 'Microsoft Ads'},
+            {platform: 'linkedin', name: 'LinkedIn Ads'}
         ];
 
         const legendItems = legend.selectAll('.legend-item')
@@ -552,7 +571,8 @@ class D3Visualizations {
                 date: date,
                 google: 800 + Math.random() * 400 + Math.sin(i * 0.2) * 200,
                 reddit: 200 + Math.random() * 150 + Math.cos(i * 0.15) * 75,
-                x: 150 + Math.random() * 100 + Math.sin(i * 0.25) * 50
+                microsoft: 180 + Math.random() * 120 + Math.sin(i * 0.18) * 60,
+                linkedin: 120 + Math.random() * 80 + Math.cos(i * 0.22) * 40
             });
         }
         

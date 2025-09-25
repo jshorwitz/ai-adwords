@@ -503,7 +503,8 @@ section h2 i {
 
 .google-ads::before { background: var(--primary-color); }
 .reddit-ads::before { background: var(--accent-color); }
-.x-ads::before { background: var(--secondary-color); }
+.microsoft-ads::before { background: linear-gradient(135deg, #0078D4, #106ebe); }
+.linkedin-ads::before { background: linear-gradient(135deg, #0077B5, #005885); }
 
 .platform-card:hover::before {
     height: 6px;
@@ -530,7 +531,8 @@ section h2 i {
 
 .google-ads .platform-icon { background: linear-gradient(135deg, #4285f4, #34a853); }
 .reddit-ads .platform-icon { background: linear-gradient(135deg, #ff4500, #ff6b35); }
-.x-ads .platform-icon { background: linear-gradient(135deg, #000000, #333333); }
+.microsoft-ads .platform-icon { background: linear-gradient(135deg, #0078D4, #106ebe); }
+.linkedin-ads .platform-icon { background: linear-gradient(135deg, #0077B5, #005885); }
 
 .platform-title h3 {
     font-size: 1.25rem;
@@ -746,7 +748,8 @@ section h2 i {
 
 .line.google { stroke: #000000; }
 .line.reddit { stroke: #ff6b35; }
-.line.x { stroke: #9C9C9C; }
+.line.microsoft { stroke: #0078D4; }
+.line.linkedin { stroke: #0077B5; }
 
 .dot {
     stroke: white;

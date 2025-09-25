@@ -115,19 +115,19 @@ async def get_chart_data(
             return {
                 "labels": [p.name for p in platforms],
                 "data": [p.spend for p in platforms],
-                "colors": ["#4285f4", "#ff4500", "#000000"]
+                "colors": ["#000000", "#ff6b35", "#0078D4", "#0077B5"]
             }
         elif chart_type == "conversions":
             return {
                 "labels": [p.name for p in platforms],
                 "data": [p.conversions for p in platforms],
-                "colors": ["#4285f4", "#ff4500", "#000000"]
+                "colors": ["#000000", "#ff6b35", "#0078D4", "#0077B5"]
             }
         elif chart_type == "ctr":
             return {
                 "labels": [p.name for p in platforms],
                 "data": [p.ctr for p in platforms],
-                "colors": ["#4285f4", "#ff4500", "#000000"]
+                "colors": ["#000000", "#ff6b35", "#0078D4", "#0077B5"]
             }
         else:
             return {"error": "Invalid chart type"}
@@ -175,11 +175,17 @@ async def get_time_series_data(
                     "ctr": 4.1 + random.uniform(-0.8, 0.8),
                     "roas": 2.8 + random.uniform(-0.3, 0.6)
                 },
-                "x": {
-                    "spend": 150 + random.uniform(-30, 80) + (base_trend * 30),
-                    "conversions": 6 + random.uniform(-1, 3) + (base_trend * 1.5),
-                    "ctr": 3.4 + random.uniform(-0.6, 0.6),
-                    "roas": 2.9 + random.uniform(-0.4, 0.5)
+                "microsoft": {
+                    "spend": 140 + random.uniform(-25, 70) + (base_trend * 25),
+                    "conversions": 5 + random.uniform(-1, 2.5) + (base_trend * 1.2),
+                    "ctr": 3.6 + random.uniform(-0.5, 0.5),
+                    "roas": 3.1 + random.uniform(-0.3, 0.4)
+                },
+                "linkedin": {
+                    "spend": 110 + random.uniform(-20, 60) + (base_trend * 20),
+                    "conversions": 4 + random.uniform(-0.5, 2) + (base_trend * 1),
+                    "ctr": 3.7 + random.uniform(-0.4, 0.4),
+                    "roas": 4.2 + random.uniform(-0.2, 0.3)
                 }
             })
         
@@ -187,7 +193,8 @@ async def get_time_series_data(
             "dates": [item["date"] for item in time_series],
             "google": [item["google"] for item in time_series],
             "reddit": [item["reddit"] for item in time_series],
-            "x": [item["x"] for item in time_series]
+            "microsoft": [item["microsoft"] for item in time_series],
+            "linkedin": [item["linkedin"] for item in time_series]
         }
         
     except Exception as e:
@@ -296,13 +303,22 @@ async def get_platform_performance(days: int) -> List[PlatformPerformance]:
                 "status": "mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
             },
             {
-                "platform": "x",
-                "name": "X (Twitter) Ads", 
-                "base_spend": 7850.00,
-                "base_impressions": 433100,
-                "base_clicks": 14930,
-                "base_conversions": 569,
-                "status": "mock" if os.getenv("MOCK_TWITTER", "true").lower() == "true" else "active"
+                "platform": "microsoft",
+                "name": "Microsoft Ads", 
+                "base_spend": 6850.00,
+                "base_impressions": 383100,
+                "base_clicks": 13930,
+                "base_conversions": 489,
+                "status": "mock" if os.getenv("MOCK_MICROSOFT", "true").lower() == "true" else "active"
+            },
+            {
+                "platform": "linkedin",
+                "name": "LinkedIn Ads", 
+                "base_spend": 5200.00,
+                "base_impressions": 245600,
+                "base_clicks": 8950,
+                "base_conversions": 325,
+                "status": "mock" if os.getenv("MOCK_LINKEDIN", "true").lower() == "true" else "active"
             }
         ]
         
@@ -354,18 +370,29 @@ async def get_platform_performance(days: int) -> List[PlatformPerformance]:
                 conversions=789,
                 ctr=4.13,
                 roas=2.8,
-                status="mock"
+                status="mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
             ),
             PlatformPerformance(
-                platform="x",
-                name="X (Twitter) Ads",
-                spend=7850.00,
-                impressions=433100,
-                clicks=14930,
-                conversions=569,
-                ctr=3.45,
-                roas=2.9,
-                status="mock"
+                platform="microsoft",
+                name="Microsoft Ads",
+                spend=6850.00,
+                impressions=383100,
+                clicks=13930,
+                conversions=489,
+                ctr=3.64,
+                roas=3.1,
+                status="mock" if os.getenv("MOCK_MICROSOFT", "true").lower() == "true" else "active"
+            ),
+            PlatformPerformance(
+                platform="linkedin",
+                name="LinkedIn Ads",
+                spend=5200.00,
+                impressions=245600,
+                clicks=8950,
+                conversions=325,
+                ctr=3.65,
+                roas=4.2,
+                status="mock" if os.getenv("MOCK_LINKEDIN", "true").lower() == "true" else "active"
             )
         ]
 
@@ -414,15 +441,26 @@ def get_mock_dashboard_summary() -> DashboardSummary:
                 status="mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
             ),
             PlatformPerformance(
-                platform="x",
-                name="X (Twitter) Ads",
-                spend=7850.00,
-                impressions=433100,
-                clicks=14930,
-                conversions=569,
-                ctr=3.45,
-                roas=2.9,
-                status="mock"
+                platform="microsoft",
+                name="Microsoft Ads",
+                spend=6850.00,
+                impressions=383100,
+                clicks=13930,
+                conversions=489,
+                ctr=3.64,
+                roas=3.1,
+                status="mock" if os.getenv("MOCK_MICROSOFT", "true").lower() == "true" else "active"
+            ),
+            PlatformPerformance(
+                platform="linkedin",
+                name="LinkedIn Ads",
+                spend=5200.00,
+                impressions=245600,
+                clicks=8950,
+                conversions=325,
+                ctr=3.65,
+                roas=4.2,
+                status="mock" if os.getenv("MOCK_LINKEDIN", "true").lower() == "true" else "active"
             )
         ],
         agents_healthy=7,
