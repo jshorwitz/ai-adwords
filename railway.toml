@@ -32,7 +32,7 @@ MICROSOFT_ADS_DEVELOPER_TOKEN = "11085M29YT845526"
 MICROSOFT_ADS_CUSTOMER_ID = "F110007XSU"
 MICROSOFT_ADS_CLIENT_ID = "7f33a26a-c05d-4750-b3f9-2b429dfebdf9"
 MICROSOFT_ADS_TENANT_ID = "3630fc6e-1576-4ffa-bdd1-5be49726d818"
-# Note: Set MICROSOFT_ADS_CLIENT_SECRET in Railway dashboard after creating client secret
+MICROSOFT_ADS_CLIENT_SECRET = "33ee494a-556b-4b27-8c25-bf95ec965ab6"
 
 # Generated DATABASE_URL will be provided by Railway PostgreSQL addon
 # Generated SECRET_KEY will be provided by Railway
