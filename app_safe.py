@@ -1,4 +1,4 @@
-"""Safe startup version of AI AdWords platform for Railway."""
+"""Safe startup version of Snyter - The AI Advertising Agency for Railway."""
 
 import os
 import logging
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Safe application lifespan events."""
-    logger.info("🚀 Starting AI AdWords Platform (Safe Mode)")
+    logger.info("🚀 Starting Snyter - The AI Advertising Agency")
     
     # Log environment
     logger.info(f"🔧 PORT: {os.getenv('PORT', 'not set')}")
@@ -55,8 +55,8 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="AI AdWords - Unified Ads Platform",
-    description="Cross-channel ads management with autonomous agents",
+    title="Snyter - The AI Advertising Agency",
+    description="AI specialists for cross-channel ads management with autonomous optimization",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -138,8 +138,8 @@ async def demo_dashboard(request: Request):
 def api_info():
     """API information endpoint."""
     return {
-        "message": "🚀 AI AdWords Platform API",
-        "service": "ai-adwords-platform",
+        "message": "🚀 Snyter - The AI Advertising Agency API",
+        "service": "snyter-platform",
         "version": "1.0.0",
         "endpoints": {
             "homepage": "/",
@@ -157,7 +157,7 @@ def health_check():
     """Simple health check."""
     return {
         "status": "healthy",
-        "service": "ai-adwords-platform",
+        "service": "snyter-platform",
         "database": "connected" if os.getenv("DATABASE_URL") else "not configured"
     }
 

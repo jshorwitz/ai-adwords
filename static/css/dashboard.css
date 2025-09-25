@@ -91,6 +91,15 @@ body {
     opacity: 0.8;
 }
 
+.brand-tagline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.5rem;
+}
+
 .header-actions {
     display: flex;
     align-items: center;

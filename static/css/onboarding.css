@@ -136,6 +136,23 @@ body {
     margin-bottom: 4rem;
 }
 
+.onboarding-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--primary-color);
+    letter-spacing: 0.05em;
+    margin-bottom: 2rem;
+}
+
+.onboarding-brand i {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+}
+
 .step-header h1 {
     font-size: 3.5rem;
     font-weight: 900;
@@ -873,6 +890,143 @@ body {
 .connect-btn:hover i.fa-arrow-right {
     color: var(--primary-color);
     transform: translateX(4px);
+}
+
+/* Account Discovery Enhancements */
+.connect-btn.account-found {
+    border-color: var(--success-color);
+    background: linear-gradient(135deg, #f0fff4, #ffffff);
+}
+
+.connect-btn.search-required {
+    border-color: var(--warning-color);
+    background: linear-gradient(135deg, #fffdf0, #ffffff);
+}
+
+.connect-btn.ready-to-connect {
+    border-color: var(--accent-color);
+    background: linear-gradient(135deg, #fff5f0, #ffffff);
+}
+
+/* Keyword Tag Enhancements */
+.keyword-tag {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    background: var(--overlay-background);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.keyword-tag.high-value {
+    background: linear-gradient(135deg, #00ff88, #00cc6a);
+    color: white;
+    border-color: var(--success-color);
+}
+
+.keyword-text {
+    font-weight: 600;
+}
+
+.keyword-volume {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.keyword-competition {
+    padding: 0.125rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.keyword-competition.low {
+    background: var(--success-color);
+    color: white;
+}
+
+.keyword-competition.medium {
+    background: var(--warning-color);
+    color: black;
+}
+
+.keyword-competition.high {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Campaign Strategies */
+.campaign-strategies {
+    margin-top: 1rem;
+}
+
+.campaign-strategies h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.strategy-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.strategy-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+}
+
+.strategy-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.strategy-icon {
+    font-size: 1.25rem;
+    margin-right: 0.5rem;
+}
+
+.budget {
+    background: var(--gradient-accent);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.strategy-keywords, .strategy-copy {
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.strategy-copy ul {
+    margin-top: 0.5rem;
+    margin-left: 1rem;
+}
+
+.strategy-copy li {
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 0.25rem;
 }
 
 /* Onboarding Actions */

@@ -110,8 +110,9 @@ class OnboardingFlow {
             // Update current task
             this.updateCurrentTask('Analyzing website content...');
             
-            // Step 1: Website Analysis
+            // Step 1: Website Analysis + Account Discovery
             await this.analyzeWebsite();
+            await this.discoverAccounts();
             await this.sleep(2000);
             
             // Step 2: Keyword Discovery
@@ -143,25 +144,46 @@ class OnboardingFlow {
         this.setStepActive('stepWebsite');
         
         try {
-            // Call website analysis API
-            const response = await fetch('/onboarding/analyze-website', {
+            // Call comprehensive analysis API (includes website + accounts + keywords + strategy)
+            const response = await fetch('/onboarding/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url: this.websiteUrl })
             });
             
             if (response.ok) {
-                this.analysisData.website = await response.json();
+                this.analysisData = await response.json();
+                console.log('✅ Comprehensive analysis completed:', this.analysisData);
             } else {
                 // Use mock data if API fails
                 this.analysisData.website = this.getMockWebsiteData();
+                this.analysisData.discovered_accounts = this.getMockAccountData();
+                this.analysisData.keyword_suggestions = this.getMockKeywordData();
+                this.analysisData.campaign_strategies = this.getMockStrategyData();
             }
         } catch (error) {
             console.error('Website analysis failed:', error);
             this.analysisData.website = this.getMockWebsiteData();
+            this.analysisData.discovered_accounts = this.getMockAccountData();
+            this.analysisData.keyword_suggestions = this.getMockKeywordData();
+            this.analysisData.campaign_strategies = this.getMockStrategyData();
         }
         
         this.setStepCompleted('stepWebsite');
+    }
+    
+    async discoverAccounts() {
+        this.updateCurrentTask('Searching for advertising accounts...');
+        
+        try {
+            // Account discovery is now included in the comprehensive analysis
+            if (this.analysisData.discovered_accounts) {
+                this.displayDiscoveredAccounts(this.analysisData.discovered_accounts);
+                console.log('✅ Found accounts:', this.analysisData.discovered_accounts);
+            }
+        } catch (error) {
+            console.error('Account discovery failed:', error);
+        }
     }
 
     async discoverKeywords() {
@@ -274,21 +296,32 @@ class OnboardingFlow {
 
     populateResults() {
         // Website info
-        if (this.analysisData.website) {
-            document.getElementById('websiteTitle').textContent = this.analysisData.website.title || 'Website';
-            document.getElementById('websiteDescription').textContent = this.analysisData.website.description || 'No description available';
-            document.getElementById('websiteIndustry').textContent = `Industry: ${this.analysisData.website.industry || 'Unknown'}`;
+        if (this.analysisData.website_info) {
+            document.getElementById('websiteTitle').textContent = this.analysisData.website_info.title || 'Website';
+            document.getElementById('websiteDescription').textContent = this.analysisData.website_info.description || 'No description available';
+            document.getElementById('websiteIndustry').textContent = `Industry: ${this.analysisData.website_info.industry || 'Unknown'}`;
         }
 
-        // Keywords
-        if (this.analysisData.keywords) {
-            this.populateKeywords(this.analysisData.keywords.keywords || []);
-            document.getElementById('keywordCount').textContent = this.analysisData.keywords.keywords?.length || 0;
+        // Keywords from new API structure
+        if (this.analysisData.keyword_suggestions) {
+            this.populateKeywords(this.analysisData.keyword_suggestions || []);
+            document.getElementById('keywordCount').textContent = this.analysisData.keyword_suggestions?.length || 0;
         }
 
-        // KPIs
-        if (this.analysisData.keywords) {
-            this.populateKPIs(this.analysisData.keywords.estimated_kpis || {});
+        // Display discovered accounts
+        if (this.analysisData.discovered_accounts) {
+            this.displayDiscoveredAccounts(this.analysisData.discovered_accounts);
+        }
+
+        // Display campaign strategies
+        if (this.analysisData.campaign_strategies) {
+            this.displayCampaignStrategies(this.analysisData.campaign_strategies);
+        }
+
+        // KPIs - estimate from keyword data
+        if (this.analysisData.keyword_suggestions) {
+            const estimatedKPIs = this.calculateKPIsFromKeywords(this.analysisData.keyword_suggestions);
+            this.populateKPIs(estimatedKPIs);
         }
 
         // Competitors
@@ -316,8 +349,19 @@ class OnboardingFlow {
         
         keywords.forEach(keyword => {
             const tag = document.createElement('div');
-            tag.className = `keyword-tag ${keyword.value === 'high' ? 'high-value' : ''}`;
-            tag.textContent = keyword.keyword || keyword;
+            // Handle both old and new keyword data structures
+            const keywordText = keyword.keyword || keyword;
+            const competition = keyword.competition || 'medium';
+            const searchVolume = keyword.search_volume || keyword.volume || 0;
+            const relevanceScore = keyword.relevance_score || 0.8;
+            
+            const isHighValue = relevanceScore > 0.85 || competition === 'low';
+            tag.className = `keyword-tag ${isHighValue ? 'high-value' : ''}`;
+            tag.innerHTML = `
+                <span class="keyword-text">${keywordText}</span>
+                <span class="keyword-volume">${this.formatNumber(searchVolume)}</span>
+                <span class="keyword-competition ${competition}">${competition}</span>
+            `;
             container.appendChild(tag);
         });
     }
@@ -502,6 +546,175 @@ class OnboardingFlow {
                     ]
                 }
             ]
+        };
+    }
+
+    getMockAccountData() {
+        const domain = new URL(this.websiteUrl).hostname;
+        const companyName = domain.split('.')[0];
+        
+        return [
+            {
+                platform: 'google',
+                account_id: '123-456-7890',
+                account_name: `${companyName} - Google Ads`,
+                status: 'active',
+                campaigns_found: 8,
+                total_spend: 15420.50,
+                access_level: 'full_access'
+            },
+            {
+                platform: 'reddit',
+                account_id: `r/${companyName}`,
+                account_name: `r/${companyName} Community`,
+                status: 'community',
+                campaigns_found: 0,
+                total_spend: null,
+                access_level: 'community_advertising'
+            },
+            {
+                platform: 'x',
+                account_id: `@${companyName}`,
+                account_name: `@${companyName} Official`,
+                status: 'active',
+                campaigns_found: 3,
+                total_spend: 2850.00,
+                access_level: 'basic_access'
+            }
+        ];
+    }
+
+    getMockKeywordData() {
+        const domain = new URL(this.websiteUrl).hostname;
+        const baseKeyword = domain.split('.')[0];
+        
+        return [
+            { keyword: `${baseKeyword} software`, search_volume: 8500, competition: 'medium', suggested_bid: 3.25, relevance_score: 0.92 },
+            { keyword: `${baseKeyword} platform`, search_volume: 5200, competition: 'low', suggested_bid: 2.80, relevance_score: 0.89 },
+            { keyword: `${baseKeyword} tool`, search_volume: 12000, competition: 'high', suggested_bid: 1.95, relevance_score: 0.85 },
+            { keyword: `${baseKeyword} solution`, search_volume: 3800, competition: 'medium', suggested_bid: 4.10, relevance_score: 0.91 },
+            { keyword: `best ${baseKeyword}`, search_volume: 2100, competition: 'high', suggested_bid: 5.20, relevance_score: 0.88 }
+        ];
+    }
+
+    getMockStrategyData() {
+        const domain = new URL(this.websiteUrl).hostname;
+        const companyName = domain.split('.')[0];
+        
+        return [
+            {
+                platform: 'google',
+                strategy_type: 'Search + Performance Max',
+                budget_recommendation: 2500.0,
+                target_keywords: [`${companyName}`, `${companyName} pricing`, 'code search tool'],
+                ad_copy_suggestions: [
+                    `Discover ${companyName} - The Developer's Choice`,
+                    `Scale Your Code Search with ${companyName}`,
+                    `Try ${companyName} Free - Advanced Code Intelligence`
+                ],
+                targeting_recommendations: {
+                    audiences: 'Developers, Engineering Managers, CTOs',
+                    locations: 'North America, Europe, APAC'
+                }
+            },
+            {
+                platform: 'reddit',
+                strategy_type: 'Community Engagement',
+                budget_recommendation: 800.0,
+                target_keywords: ['developer tools', 'code search', 'programming'],
+                ad_copy_suggestions: [
+                    `Developers love ${companyName} for faster code discovery`,
+                    `How ${companyName} changed our development workflow`
+                ],
+                targeting_recommendations: {
+                    communities: 'r/programming, r/webdev, r/javascript',
+                    interests: 'Software Development, Programming'
+                }
+            }
+        ];
+    }
+
+    displayDiscoveredAccounts(accounts) {
+        console.log('🔍 Displaying discovered accounts:', accounts);
+        
+        // Update connection buttons with discovered account info
+        accounts.forEach(account => {
+            const buttonId = `connect${account.platform.charAt(0).toUpperCase() + account.platform.slice(1)}`;
+            const button = document.getElementById(buttonId);
+            
+            if (button) {
+                const platformInfo = button.querySelector('.platform-info');
+                const platformDesc = button.querySelector('.platform-desc');
+                
+                if (account.campaigns_found > 0) {
+                    platformDesc.textContent = `Found ${account.campaigns_found} campaigns - $${account.total_spend?.toLocaleString() || '0'} spend`;
+                    button.classList.add('account-found');
+                } else if (account.access_level === 'search_required') {
+                    platformDesc.textContent = 'Account search required - click to connect';
+                    button.classList.add('search-required');
+                } else {
+                    platformDesc.textContent = 'Ready to connect and create campaigns';
+                    button.classList.add('ready-to-connect');
+                }
+            }
+        });
+    }
+
+    displayCampaignStrategies(strategies) {
+        console.log('📋 Displaying campaign strategies:', strategies);
+        
+        // Create a strategies section in the optimization brief
+        const briefElement = document.getElementById('optimizationBrief');
+        if (briefElement) {
+            let strategiesHtml = '<div class="campaign-strategies"><h4>🎯 Platform-Specific Strategies</h4>';
+            
+            strategies.forEach(strategy => {
+                const platformIcon = {
+                    'google': '🔍',
+                    'reddit': '🔗', 
+                    'x': '🐦'
+                }[strategy.platform] || '📊';
+                
+                strategiesHtml += `
+                    <div class="strategy-card">
+                        <div class="strategy-header">
+                            <span class="strategy-icon">${platformIcon}</span>
+                            <strong>${strategy.platform.toUpperCase()} - ${strategy.strategy_type}</strong>
+                            <span class="budget">$${strategy.budget_recommendation}/mo</span>
+                        </div>
+                        <div class="strategy-keywords">
+                            <strong>Target Keywords:</strong> ${strategy.target_keywords.join(', ')}
+                        </div>
+                        <div class="strategy-copy">
+                            <strong>Ad Copy Ideas:</strong>
+                            <ul>${strategy.ad_copy_suggestions.map(copy => `<li>"${copy}"</li>`).join('')}</ul>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            strategiesHtml += '</div>';
+            briefElement.innerHTML = strategiesHtml;
+        }
+    }
+
+    calculateKPIsFromKeywords(keywords) {
+        if (!keywords || keywords.length === 0) {
+            return { impressions: 0, cpc: 0, ctr: 4.2, cac: 200 };
+        }
+
+        const totalVolume = keywords.reduce((sum, kw) => sum + (kw.search_volume || 0), 0);
+        const avgBid = keywords.reduce((sum, kw) => sum + (kw.suggested_bid || 2.0), 0) / keywords.length;
+        const estimatedImpressions = Math.round(totalVolume * 0.3); // 30% impression share
+        const estimatedCTR = 4.2; // Industry average
+        const estimatedClicks = Math.round(estimatedImpressions * (estimatedCTR / 100));
+        const estimatedCAC = Math.round(avgBid * (100 / estimatedCTR)); // Cost per acquisition estimate
+
+        return {
+            impressions: estimatedImpressions,
+            cpc: avgBid.toFixed(2),
+            ctr: estimatedCTR,
+            cac: estimatedCAC
         };
     }
 
