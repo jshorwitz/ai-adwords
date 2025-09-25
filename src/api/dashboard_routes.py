@@ -372,6 +372,7 @@ async def get_platform_performance(days: int) -> List[PlatformPerformance]:
 
 def get_mock_dashboard_summary() -> DashboardSummary:
     """Get mock dashboard data when real data fails."""
+    import os
     return DashboardSummary(
         kpis=KPIData(
             total_spend=45250.75,
@@ -410,7 +411,7 @@ def get_mock_dashboard_summary() -> DashboardSummary:
                 conversions=789,
                 ctr=4.13,
                 roas=2.8,
-                status="mock"
+                status="mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
             ),
             PlatformPerformance(
                 platform="x",
