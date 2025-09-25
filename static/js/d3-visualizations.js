@@ -568,10 +568,455 @@ class D3Visualizations {
         return Math.round(num).toString();
     }
 
+    // 5. Conversions Bar Chart
+    createConversionsBarChart(data, containerId) {
+        const container = d3.select(`#${containerId}`);
+        container.selectAll("*").remove();
+
+        const margin = {top: 20, right: 20, bottom: 60, left: 60};
+        const width = 350 - margin.left - margin.right;
+        const height = 250 - margin.bottom - margin.top;
+
+        const svg = container
+            .append('svg')
+            .attr('viewBox', `0 0 ${350} ${300}`)
+            .style('width', '100%')
+            .style('height', '100%');
+
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+        // Scales
+        const x = d3.scaleBand()
+            .domain(data.map(d => d.name))
+            .range([0, width])
+            .padding(0.2);
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.conversions) * 1.1])
+            .range([height, 0]);
+
+        // Add bars with animation
+        g.selectAll('.bar')
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr('class', 'bar')
+            .attr('x', d => x(d.name))
+            .attr('width', x.bandwidth())
+            .attr('fill', d => this.colors[d.platform])
+            .attr('y', height)
+            .attr('height', 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200)
+            .attr('y', d => y(d.conversions))
+            .attr('height', d => height - y(d.conversions));
+
+        // Add value labels on bars
+        g.selectAll('.bar-label')
+            .data(data)
+            .enter()
+            .append('text')
+            .attr('class', 'bar-label')
+            .attr('x', d => x(d.name) + x.bandwidth() / 2)
+            .attr('y', d => y(d.conversions) - 5)
+            .text(d => this.formatNumber(d.conversions))
+            .style('opacity', 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200 + 500)
+            .style('opacity', 1);
+
+        // Add axes
+        g.append('g')
+            .attr('class', 'axis')
+            .attr('transform', `translate(0, ${height})`)
+            .call(d3.axisBottom(x))
+            .selectAll('text')
+            .style('text-anchor', 'middle')
+            .style('font-size', '10px');
+
+        g.append('g')
+            .attr('class', 'axis')
+            .call(d3.axisLeft(y).ticks(5));
+
+        // Y-axis label
+        g.append('text')
+            .attr('class', 'axis-label')
+            .attr('transform', 'rotate(-90)')
+            .attr('y', -40)
+            .attr('x', -height / 2)
+            .style('text-anchor', 'middle')
+            .text('Conversions');
+
+        // Add hover effects
+        g.selectAll('.bar')
+            .on('mouseover', (event, d) => {
+                this.tooltip
+                    .style('visibility', 'visible')
+                    .html(`
+                        <strong>${d.name}</strong><br/>
+                        Conversions: ${this.formatNumber(d.conversions)}<br/>
+                        Spend: $${this.formatNumber(d.spend)}<br/>
+                        Conversion Rate: ${(d.conversions / d.clicks * 100).toFixed(2)}%
+                    `);
+            })
+            .on('mousemove', (event) => {
+                this.tooltip
+                    .style('top', (event.pageY - 10) + 'px')
+                    .style('left', (event.pageX + 10) + 'px');
+            })
+            .on('mouseout', () => {
+                this.tooltip.style('visibility', 'hidden');
+            });
+    }
+
+    // 6. Impressions Bar Chart
+    createImpressionsBarChart(data, containerId) {
+        const container = d3.select(`#${containerId}`);
+        container.selectAll("*").remove();
+
+        const margin = {top: 20, right: 20, bottom: 60, left: 80};
+        const width = 350 - margin.left - margin.right;
+        const height = 250 - margin.bottom - margin.top;
+
+        const svg = container
+            .append('svg')
+            .attr('viewBox', `0 0 ${350} ${300}`)
+            .style('width', '100%')
+            .style('height', '100%');
+
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+        // Scales
+        const x = d3.scaleBand()
+            .domain(data.map(d => d.name))
+            .range([0, width])
+            .padding(0.2);
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.impressions) * 1.1])
+            .range([height, 0]);
+
+        // Add bars with animation
+        g.selectAll('.bar')
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr('class', 'bar')
+            .attr('x', d => x(d.name))
+            .attr('width', x.bandwidth())
+            .attr('fill', d => this.colors[d.platform])
+            .attr('y', height)
+            .attr('height', 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200)
+            .attr('y', d => y(d.impressions))
+            .attr('height', d => height - y(d.impressions));
+
+        // Add value labels on bars
+        g.selectAll('.bar-label')
+            .data(data)
+            .enter()
+            .append('text')
+            .attr('class', 'bar-label')
+            .attr('x', d => x(d.name) + x.bandwidth() / 2)
+            .attr('y', d => y(d.impressions) - 5)
+            .text(d => this.formatNumber(d.impressions))
+            .style('opacity', 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200 + 500)
+            .style('opacity', 1);
+
+        // Add axes
+        g.append('g')
+            .attr('class', 'axis')
+            .attr('transform', `translate(0, ${height})`)
+            .call(d3.axisBottom(x))
+            .selectAll('text')
+            .style('text-anchor', 'middle')
+            .style('font-size', '10px');
+
+        g.append('g')
+            .attr('class', 'axis')
+            .call(d3.axisLeft(y).ticks(5).tickFormat(d => this.formatNumber(d)));
+
+        // Y-axis label
+        g.append('text')
+            .attr('class', 'axis-label')
+            .attr('transform', 'rotate(-90)')
+            .attr('y', -60)
+            .attr('x', -height / 2)
+            .style('text-anchor', 'middle')
+            .text('Impressions');
+
+        // Add hover effects
+        g.selectAll('.bar')
+            .on('mouseover', (event, d) => {
+                this.tooltip
+                    .style('visibility', 'visible')
+                    .html(`
+                        <strong>${d.name}</strong><br/>
+                        Impressions: ${this.formatNumber(d.impressions)}<br/>
+                        Clicks: ${this.formatNumber(d.clicks)}<br/>
+                        CTR: ${d.ctr}%
+                    `);
+            })
+            .on('mousemove', (event) => {
+                this.tooltip
+                    .style('top', (event.pageY - 10) + 'px')
+                    .style('left', (event.pageX + 10) + 'px');
+            })
+            .on('mouseout', () => {
+                this.tooltip.style('visibility', 'hidden');
+            });
+    }
+
+    // 7. Cost Per Conversion Chart
+    createCostPerConversionChart(data, containerId) {
+        const container = d3.select(`#${containerId}`);
+        container.selectAll("*").remove();
+
+        const margin = {top: 20, right: 20, bottom: 60, left: 80};
+        const width = 350 - margin.left - margin.right;
+        const height = 250 - margin.bottom - margin.top;
+
+        const svg = container
+            .append('svg')
+            .attr('viewBox', `0 0 ${350} ${300}`)
+            .style('width', '100%')
+            .style('height', '100%');
+
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+        // Calculate cost per conversion
+        const dataWithCPC = data.map(d => ({
+            ...d,
+            costPerConversion: d.conversions > 0 ? d.spend / d.conversions : 0
+        }));
+
+        // Scales
+        const x = d3.scaleBand()
+            .domain(dataWithCPC.map(d => d.name))
+            .range([0, width])
+            .padding(0.2);
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(dataWithCPC, d => d.costPerConversion) * 1.1])
+            .range([height, 0]);
+
+        // Add bars with animation
+        g.selectAll('.bar')
+            .data(dataWithCPC)
+            .enter()
+            .append('rect')
+            .attr('class', 'bar')
+            .attr('x', d => x(d.name))
+            .attr('width', x.bandwidth())
+            .attr('fill', d => this.colors[d.platform])
+            .attr('y', height)
+            .attr('height', 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200)
+            .attr('y', d => y(d.costPerConversion))
+            .attr('height', d => height - y(d.costPerConversion));
+
+        // Add value labels on bars
+        g.selectAll('.bar-label')
+            .data(dataWithCPC)
+            .enter()
+            .append('text')
+            .attr('class', 'bar-label')
+            .attr('x', d => x(d.name) + x.bandwidth() / 2)
+            .attr('y', d => y(d.costPerConversion) - 5)
+            .text(d => `$${d.costPerConversion.toFixed(2)}`)
+            .style('opacity', 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200 + 500)
+            .style('opacity', 1);
+
+        // Add axes
+        g.append('g')
+            .attr('class', 'axis')
+            .attr('transform', `translate(0, ${height})`)
+            .call(d3.axisBottom(x))
+            .selectAll('text')
+            .style('text-anchor', 'middle')
+            .style('font-size', '10px');
+
+        g.append('g')
+            .attr('class', 'axis')
+            .call(d3.axisLeft(y).ticks(5).tickFormat(d => `$${d.toFixed(0)}`));
+
+        // Y-axis label
+        g.append('text')
+            .attr('class', 'axis-label')
+            .attr('transform', 'rotate(-90)')
+            .attr('y', -60)
+            .attr('x', -height / 2)
+            .style('text-anchor', 'middle')
+            .text('Cost Per Conversion');
+
+        // Add hover effects
+        g.selectAll('.bar')
+            .on('mouseover', (event, d) => {
+                this.tooltip
+                    .style('visibility', 'visible')
+                    .html(`
+                        <strong>${d.name}</strong><br/>
+                        Cost/Conversion: $${d.costPerConversion.toFixed(2)}<br/>
+                        Total Spend: $${this.formatNumber(d.spend)}<br/>
+                        Conversions: ${this.formatNumber(d.conversions)}
+                    `);
+            })
+            .on('mousemove', (event) => {
+                this.tooltip
+                    .style('top', (event.pageY - 10) + 'px')
+                    .style('left', (event.pageX + 10) + 'px');
+            })
+            .on('mouseout', () => {
+                this.tooltip.style('visibility', 'hidden');
+            });
+    }
+
+    // 8. Click-Through Rate Chart
+    createCTRChart(data, containerId) {
+        const container = d3.select(`#${containerId}`);
+        container.selectAll("*").remove();
+
+        const margin = {top: 20, right: 20, bottom: 60, left: 60};
+        const width = 350 - margin.left - margin.right;
+        const height = 250 - margin.bottom - margin.top;
+
+        const svg = container
+            .append('svg')
+            .attr('viewBox', `0 0 ${350} ${300}`)
+            .style('width', '100%')
+            .style('height', '100%');
+
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+        // Scales
+        const x = d3.scaleBand()
+            .domain(data.map(d => d.name))
+            .range([0, width])
+            .padding(0.2);
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.ctr) * 1.2])
+            .range([height, 0]);
+
+        // Add bars with animation
+        g.selectAll('.bar')
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr('class', 'bar')
+            .attr('x', d => x(d.name))
+            .attr('width', x.bandwidth())
+            .attr('fill', d => this.colors[d.platform])
+            .attr('y', height)
+            .attr('height', 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200)
+            .attr('y', d => y(d.ctr))
+            .attr('height', d => height - y(d.ctr));
+
+        // Add value labels on bars
+        g.selectAll('.bar-label')
+            .data(data)
+            .enter()
+            .append('text')
+            .attr('class', 'bar-label')
+            .attr('x', d => x(d.name) + x.bandwidth() / 2)
+            .attr('y', d => y(d.ctr) - 5)
+            .text(d => `${d.ctr}%`)
+            .style('opacity', 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200 + 500)
+            .style('opacity', 1);
+
+        // Add target line (industry average)
+        const targetCTR = 3.5;
+        g.append('line')
+            .attr('class', 'target-line')
+            .attr('x1', 0)
+            .attr('x2', width)
+            .attr('y1', y(targetCTR))
+            .attr('y2', y(targetCTR))
+            .style('stroke', '#ff4444')
+            .style('stroke-width', 2)
+            .style('stroke-dasharray', '5,5');
+
+        g.append('text')
+            .attr('x', width - 80)
+            .attr('y', y(targetCTR) - 5)
+            .text('Industry Avg')
+            .style('font-size', '10px')
+            .style('fill', '#ff4444');
+
+        // Add axes
+        g.append('g')
+            .attr('class', 'axis')
+            .attr('transform', `translate(0, ${height})`)
+            .call(d3.axisBottom(x))
+            .selectAll('text')
+            .style('text-anchor', 'middle')
+            .style('font-size', '10px');
+
+        g.append('g')
+            .attr('class', 'axis')
+            .call(d3.axisLeft(y).ticks(5).tickFormat(d => `${d}%`));
+
+        // Y-axis label
+        g.append('text')
+            .attr('class', 'axis-label')
+            .attr('transform', 'rotate(-90)')
+            .attr('y', -40)
+            .attr('x', -height / 2)
+            .style('text-anchor', 'middle')
+            .text('Click-Through Rate (%)');
+
+        // Add hover effects
+        g.selectAll('.bar')
+            .on('mouseover', (event, d) => {
+                this.tooltip
+                    .style('visibility', 'visible')
+                    .html(`
+                        <strong>${d.name}</strong><br/>
+                        CTR: ${d.ctr}%<br/>
+                        Clicks: ${this.formatNumber(d.clicks)}<br/>
+                        Impressions: ${this.formatNumber(d.impressions)}
+                    `);
+            })
+            .on('mousemove', (event) => {
+                this.tooltip
+                    .style('top', (event.pageY - 10) + 'px')
+                    .style('left', (event.pageX + 10) + 'px');
+            })
+            .on('mouseout', () => {
+                this.tooltip.style('visibility', 'hidden');
+            });
+    }
+
     // Update all visualizations
     updateVisualizations(platformData) {
         this.createSpendDonutChart(platformData, 'spendDonutChart');
         this.createROASBarChart(platformData, 'roasBarChart');
+        this.createConversionsBarChart(platformData, 'conversionsBarChart');
+        this.createImpressionsBarChart(platformData, 'impressionsBarChart');
+        this.createCostPerConversionChart(platformData, 'costPerConversionChart');
+        this.createCTRChart(platformData, 'ctrChart');
         this.createPerformanceBubbleChart(platformData, 'performanceBubbleChart');
         this.createTimeSeriesChart('timeSeriesChart');
     }
