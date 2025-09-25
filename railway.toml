@@ -19,13 +19,17 @@ RELOAD = "false"
 
 # Safety settings - disable real API calls initially
 MOCK_REDDIT = "false"
-MOCK_MICROSOFT = "true"
+MOCK_MICROSOFT = "false"
 MOCK_LINKEDIN = "true"
 ENABLE_REAL_MUTATES = "false"
 
 # Reddit API credentials
 REDDIT_CLIENT_ID = "mDSnWlcEn17omHHxElhLzg"
 REDDIT_CLIENT_SECRET = "XF74NzwNIexlLltp_dimfdFqzJlYTA"
+
+# Microsoft Ads API credentials
+MICROSOFT_ADS_DEVELOPER_TOKEN = "11085M29YT845526"
+MICROSOFT_ADS_CUSTOMER_ID = "141533415"
 
 # Generated DATABASE_URL will be provided by Railway PostgreSQL addon
 # Generated SECRET_KEY will be provided by Railway
