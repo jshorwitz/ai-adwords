@@ -16,6 +16,7 @@ from .auth_routes import router as auth_router
 from .agent_routes import router as agent_router
 from .dashboard_routes import router as dashboard_router
 from .onboarding_routes import router as onboarding_router
+from .debug_routes import router as debug_router
 
 # Get the root directory of the project
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -91,6 +92,7 @@ app.include_router(auth_router)
 app.include_router(agent_router)
 app.include_router(dashboard_router)
 app.include_router(onboarding_router)
+app.include_router(debug_router)
 
 
 @app.get("/", response_class=HTMLResponse)
