@@ -213,14 +213,25 @@ class Dashboard {
                     status: 'mock'
                 },
                 {
-                    platform: 'x',
-                    name: 'X (Twitter) Ads',
-                    spend: 7850.00,
-                    impressions: 433100,
-                    clicks: 14930,
-                    conversions: 569,
-                    ctr: 3.45,
-                    roas: 2.9,
+                    platform: 'microsoft',
+                    name: 'Microsoft Ads',
+                    spend: 6850.00,
+                    impressions: 383100,
+                    clicks: 13930,
+                    conversions: 489,
+                    ctr: 3.64,
+                    roas: 3.1,
+                    status: 'mock'
+                },
+                {
+                    platform: 'linkedin',
+                    name: 'LinkedIn Ads',
+                    spend: 5200.00,
+                    impressions: 245600,
+                    clicks: 8950,
+                    conversions: 325,
+                    ctr: 3.65,
+                    roas: 4.2,
                     status: 'mock'
                 }
             ];
@@ -319,10 +330,32 @@ class Dashboard {
         });
     }
 
-    updateChart(platforms) {
+    async updateChart(platforms) {
         // Use D3.js visualizations instead of Chart.js
         if (window.d3Viz) {
-            window.d3Viz.updateVisualizations(platforms);
+            // Ensure data is in the correct format for D3 charts
+            const chartData = platforms.map(platform => ({
+                platform: platform.platform,
+                name: platform.name,
+                spend: parseFloat(platform.spend) || 0,
+                impressions: parseInt(platform.impressions) || 0,
+                clicks: parseInt(platform.clicks) || 0,
+                conversions: parseInt(platform.conversions) || 0,
+                ctr: parseFloat(platform.ctr) || 0,
+                roas: parseFloat(platform.roas) || 0,
+                status: platform.status
+            }));
+            
+            console.log('Updating D3 visualizations with data:', chartData);
+            await window.d3Viz.updateVisualizations(chartData);
+        } else {
+            console.warn('D3 visualizations not loaded yet');
+            // Try again after a short delay
+            setTimeout(() => {
+                if (window.d3Viz) {
+                    this.updateChart(platforms);
+                }
+            }, 500);
         }
     }
 

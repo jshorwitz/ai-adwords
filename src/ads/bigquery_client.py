@@ -103,6 +103,36 @@ class BigQueryClient:
 
         self._create_table("keywords_performance", schema)
 
+    def create_ad_metrics_table(self) -> None:
+        """Create multi-platform ad metrics table for Reddit, Microsoft, LinkedIn, etc."""
+        schema = [
+            bigquery.SchemaField("date", "DATE", mode="REQUIRED"),
+            bigquery.SchemaField("platform", "STRING", mode="REQUIRED"),  # reddit, microsoft, linkedin, etc
+            bigquery.SchemaField("account_id", "STRING", mode="REQUIRED"),
+            bigquery.SchemaField("account_name", "STRING"),
+            bigquery.SchemaField("campaign_id", "STRING", mode="REQUIRED"),
+            bigquery.SchemaField("campaign_name", "STRING"),
+            bigquery.SchemaField("adgroup_id", "STRING"),
+            bigquery.SchemaField("adgroup_name", "STRING"),
+            bigquery.SchemaField("ad_id", "STRING"),
+            bigquery.SchemaField("ad_name", "STRING"),
+            bigquery.SchemaField("impressions", "INTEGER"),
+            bigquery.SchemaField("clicks", "INTEGER"),
+            bigquery.SchemaField("spend", "FLOAT"),  # Already in USD
+            bigquery.SchemaField("conversions", "FLOAT"),
+            bigquery.SchemaField("ctr", "FLOAT"),
+            bigquery.SchemaField("cpc", "FLOAT"),  # Cost per click in USD
+            bigquery.SchemaField("cpm", "FLOAT"),  # Cost per thousand impressions in USD
+            bigquery.SchemaField("conversion_rate", "FLOAT"),
+            bigquery.SchemaField("cost_per_conversion", "FLOAT"),
+            bigquery.SchemaField("revenue", "FLOAT"),  # Revenue from conversions
+            bigquery.SchemaField("roas", "FLOAT"),  # Return on ad spend
+            bigquery.SchemaField("raw", "JSON"),  # Store original API response
+            bigquery.SchemaField("updated_at", "TIMESTAMP"),
+        ]
+
+        self._create_table("ad_metrics", schema)
+
     def _create_table(
         self, table_name: str, schema: list[bigquery.SchemaField]
     ) -> None:

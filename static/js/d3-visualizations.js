@@ -381,7 +381,7 @@ class D3Visualizations {
     }
 
     // 4. Time Series Performance Chart
-    createTimeSeriesChart(containerId) {
+    async createTimeSeriesChart(containerId) {
         const container = d3.select(`#${containerId}`);
         container.selectAll("*").remove();
 
@@ -398,8 +398,8 @@ class D3Visualizations {
         const g = svg.append('g')
             .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-        // Generate mock time series data
-        const timeData = this.generateTimeSeriesData();
+        // Fetch real time series data
+        const timeData = await this.fetchTimeSeriesData();
 
         // Scales
         const x = d3.scaleTime()
@@ -558,7 +558,37 @@ class D3Visualizations {
             .text(d => d.name);
     }
 
-    // Helper method to generate time series data
+    // Fetch real time series data from API
+    async fetchTimeSeriesData() {
+        try {
+            const response = await fetch('/dashboard/timeseries?days=30');
+            if (!response.ok) {
+                throw new Error('Failed to fetch time series data');
+            }
+            
+            const data = await response.json();
+            console.log('Fetched time series data:', data);
+            
+            // Convert API response to format expected by D3 chart
+            if (data.dates && data.google) {
+                return data.dates.map((date, index) => ({
+                    date: new Date(date),
+                    google: data.google[index]?.spend || 0,
+                    reddit: data.reddit[index]?.spend || 0,
+                    microsoft: data.microsoft[index]?.spend || 0,
+                    linkedin: data.linkedin[index]?.spend || 0
+                }));
+            } else {
+                // Fallback to generated data if API format is unexpected
+                return this.generateTimeSeriesData();
+            }
+        } catch (error) {
+            console.error('Error fetching time series data:', error);
+            return this.generateTimeSeriesData();
+        }
+    }
+
+    // Helper method to generate time series data (fallback)
     generateTimeSeriesData() {
         const data = [];
         const endDate = new Date();
@@ -1030,7 +1060,10 @@ class D3Visualizations {
     }
 
     // Update all visualizations
-    updateVisualizations(platformData) {
+    async updateVisualizations(platformData) {
+        console.log('Updating all visualizations with platform data:', platformData);
+        
+        // Update static charts first
         this.createSpendDonutChart(platformData, 'spendDonutChart');
         this.createROASBarChart(platformData, 'roasBarChart');
         this.createConversionsBarChart(platformData, 'conversionsBarChart');
@@ -1038,7 +1071,9 @@ class D3Visualizations {
         this.createCostPerConversionChart(platformData, 'costPerConversionChart');
         this.createCTRChart(platformData, 'ctrChart');
         this.createPerformanceBubbleChart(platformData, 'performanceBubbleChart');
-        this.createTimeSeriesChart('timeSeriesChart');
+        
+        // Update time series chart asynchronously
+        await this.createTimeSeriesChart('timeSeriesChart');
     }
 }
 

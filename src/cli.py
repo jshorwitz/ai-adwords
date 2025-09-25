@@ -51,6 +51,9 @@ def setup_bigquery() -> None:
 
         print("Creating keywords table...")
         client.create_keywords_table()
+        
+        print("Creating ad_metrics table for multi-platform data...")
+        client.create_ad_metrics_table()
 
         print("✅ BigQuery setup complete!")
         print(f"Dataset: {client.project_id}.{client.dataset_id}")

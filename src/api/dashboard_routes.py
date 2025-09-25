@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from ..models.auth import User
 from .middleware import get_current_user, get_current_user_optional
+from ..services.bigquery_service import get_bigquery_service
 
 logger = logging.getLogger(__name__)
 
@@ -144,11 +145,22 @@ async def get_time_series_data(
 ):
     """Get time series data for performance trends."""
     
+    bigquery_service = get_bigquery_service()
+    
+    # Try to get data from BigQuery first
+    if bigquery_service.is_available():
+        try:
+            logger.info(f"Getting time series data from BigQuery for {days} days")
+            time_series_data = await bigquery_service.get_time_series_data(days)
+            
+            if time_series_data and time_series_data.get('dates'):
+                return time_series_data
+        except Exception as e:
+            logger.error(f"Failed to get time series data from BigQuery: {e}")
+    
+    # Fallback to mock time series data
+    logger.info("Using mock time series data")
     try:
-        # TODO: Implement actual database query for historical data
-        # This would query ad_metrics table grouped by date and platform
-        
-        # Generate mock time series data
         import random
         from datetime import date, timedelta
         
@@ -223,178 +235,150 @@ async def get_demo_summary():
 
 # Internal helper functions
 async def get_kpi_data(days: int) -> KPIData:
-    """Get KPI data from database or return mock data."""
+    """Get KPI data from BigQuery or return mock data."""
     
-    try:
-        # TODO: Implement actual database queries
-        # This would query ad_metrics table and aggregate data
-        
-        # For now, return mock data with some randomization
-        import random
-        base_multiplier = days / 30  # Scale based on date range
-        
-        return KPIData(
-            total_spend=round(45250.75 * base_multiplier * random.uniform(0.8, 1.2), 2),
-            total_impressions=int(2847391 * base_multiplier * random.uniform(0.9, 1.1)),
-            total_clicks=int(127583 * base_multiplier * random.uniform(0.85, 1.15)),
-            total_conversions=int(3492 * base_multiplier * random.uniform(0.7, 1.3)),
-            avg_ctr=round(4.48 * random.uniform(0.9, 1.1), 2),
-            avg_roas=round(3.2 * random.uniform(0.8, 1.2), 1),
-            changes={
-                "spend": round(random.uniform(-5, 25), 1),
-                "impressions": round(random.uniform(-10, 20), 1),
-                "clicks": round(random.uniform(-15, 30), 1),
-                "conversions": round(random.uniform(-20, 40), 1),
-                "ctr": round(random.uniform(-10, 10), 1),
-                "roas": round(random.uniform(-15, 25), 1),
-            }
-        )
-        
-    except Exception as e:
-        logger.exception("Failed to get KPI data")
-        # Fallback to static mock data
-        return KPIData(
-            total_spend=45250.75,
-            total_impressions=2847391,
-            total_clicks=127583,
-            total_conversions=3492,
-            avg_ctr=4.48,
-            avg_roas=3.2,
-            changes={
-                "spend": 12.5,
-                "impressions": 8.7,
-                "clicks": 15.2,
-                "conversions": 22.1,
-                "ctr": -2.3,
-                "roas": 18.9,
-            }
-        )
+    bigquery_service = get_bigquery_service()
+    
+    # Try to get data from BigQuery first
+    if bigquery_service.is_available():
+        try:
+            logger.info(f"Getting KPI data from BigQuery for {days} days")
+            kpi_data = await bigquery_service.get_kpi_summary(days)
+            
+            if kpi_data:
+                return KPIData(
+                    total_spend=kpi_data['total_spend'],
+                    total_impressions=kpi_data['total_impressions'],
+                    total_clicks=kpi_data['total_clicks'],
+                    total_conversions=kpi_data['total_conversions'],
+                    avg_ctr=kpi_data['avg_ctr'],
+                    avg_roas=kpi_data['avg_roas'],
+                    changes=kpi_data['changes']
+                )
+        except Exception as e:
+            logger.error(f"Failed to get KPI data from BigQuery: {e}")
+    
+    # Fallback to mock data with some randomization
+    logger.info("Using mock KPI data")
+    import random
+    base_multiplier = days / 30  # Scale based on date range
+    
+    return KPIData(
+        total_spend=round(45250.75 * base_multiplier * random.uniform(0.8, 1.2), 2),
+        total_impressions=int(2847391 * base_multiplier * random.uniform(0.9, 1.1)),
+        total_clicks=int(127583 * base_multiplier * random.uniform(0.85, 1.15)),
+        total_conversions=int(3492 * base_multiplier * random.uniform(0.7, 1.3)),
+        avg_ctr=round(4.48 * random.uniform(0.9, 1.1), 2),
+        avg_roas=round(3.2 * random.uniform(0.8, 1.2), 1),
+        changes={
+            "spend": round(random.uniform(-5, 25), 1),
+            "impressions": round(random.uniform(-10, 20), 1),
+            "clicks": round(random.uniform(-15, 30), 1),
+            "conversions": round(random.uniform(-20, 40), 1),
+            "ctr": round(random.uniform(-10, 10), 1),
+            "roas": round(random.uniform(-15, 25), 1),
+        }
+    )
 
 
 async def get_platform_performance(days: int) -> List[PlatformPerformance]:
-    """Get platform performance data from database or return mock data."""
+    """Get platform performance data from BigQuery or return mock data."""
     
-    try:
-        # TODO: Implement actual database queries
-        # This would query ad_metrics table grouped by platform
-        
-        import random
-        import os
-        
-        base_multiplier = days / 30
-        
-        platforms = [
-            {
-                "platform": "google",
-                "name": "Google Ads",
-                "base_spend": 28450.25,
-                "base_impressions": 1847291,
-                "base_clicks": 89234,
-                "base_conversions": 2134,
-                "status": "active" if os.getenv("GOOGLE_ADS_CLIENT_ID") else "mock"
-            },
-            {
-                "platform": "reddit", 
-                "name": "Reddit Ads",
-                "base_spend": 8950.50,
-                "base_impressions": 567000,
-                "base_clicks": 23419,
-                "base_conversions": 789,
-                "status": "mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
-            },
-            {
-                "platform": "microsoft",
-                "name": "Microsoft Ads", 
-                "base_spend": 6850.00,
-                "base_impressions": 383100,
-                "base_clicks": 13930,
-                "base_conversions": 489,
-                "status": "mock" if os.getenv("MOCK_MICROSOFT", "true").lower() == "true" else "active"
-            },
-            {
-                "platform": "linkedin",
-                "name": "LinkedIn Ads", 
-                "base_spend": 5200.00,
-                "base_impressions": 245600,
-                "base_clicks": 8950,
-                "base_conversions": 325,
-                "status": "mock" if os.getenv("MOCK_LINKEDIN", "true").lower() == "true" else "active"
-            }
-        ]
-        
-        result = []
-        for p in platforms:
-            spend = round(p["base_spend"] * base_multiplier * random.uniform(0.8, 1.2), 2)
-            impressions = int(p["base_impressions"] * base_multiplier * random.uniform(0.9, 1.1))
-            clicks = int(p["base_clicks"] * base_multiplier * random.uniform(0.85, 1.15))
-            conversions = int(p["base_conversions"] * base_multiplier * random.uniform(0.7, 1.3))
+    bigquery_service = get_bigquery_service()
+    
+    # Try to get data from BigQuery first
+    if bigquery_service.is_available():
+        try:
+            logger.info(f"Getting platform performance from BigQuery for {days} days")
+            platform_data = await bigquery_service.get_platform_performance(days)
             
-            ctr = round((clicks / impressions * 100), 2) if impressions > 0 else 0
-            roas = round((conversions * 100 / spend), 1) if spend > 0 else 0
-            
-            result.append(PlatformPerformance(
-                platform=p["platform"],
-                name=p["name"],
-                spend=spend,
-                impressions=impressions,
-                clicks=clicks,
-                conversions=conversions,
-                ctr=ctr,
-                roas=roas,
-                status=p["status"]
-            ))
+            if platform_data:
+                return [
+                    PlatformPerformance(
+                        platform=p['platform'],
+                        name=p['name'],
+                        spend=p['spend'],
+                        impressions=p['impressions'],
+                        clicks=p['clicks'],
+                        conversions=p['conversions'],
+                        ctr=p['ctr'],
+                        roas=p['roas'],
+                        status=p['status']
+                    )
+                    for p in platform_data
+                ]
+        except Exception as e:
+            logger.error(f"Failed to get platform performance from BigQuery: {e}")
+    
+    # Fallback to mock data with some randomization
+    logger.info("Using mock platform performance data")
+    import random
+    import os
+    
+    base_multiplier = days / 30
+    
+    platforms = [
+        {
+            "platform": "google",
+            "name": "Google Ads",
+            "base_spend": 28450.25,
+            "base_impressions": 1847291,
+            "base_clicks": 89234,
+            "base_conversions": 2134,
+            "status": "active" if os.getenv("GOOGLE_ADS_CLIENT_ID") else "mock"
+        },
+        {
+            "platform": "reddit", 
+            "name": "Reddit Ads",
+            "base_spend": 8950.50,
+            "base_impressions": 567000,
+            "base_clicks": 23419,
+            "base_conversions": 789,
+            "status": "mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
+        },
+        {
+            "platform": "microsoft",
+            "name": "Microsoft Ads", 
+            "base_spend": 6850.00,
+            "base_impressions": 383100,
+            "base_clicks": 13930,
+            "base_conversions": 489,
+            "status": "mock" if os.getenv("MOCK_MICROSOFT", "true").lower() == "true" else "active"
+        },
+        {
+            "platform": "linkedin",
+            "name": "LinkedIn Ads", 
+            "base_spend": 5200.00,
+            "base_impressions": 245600,
+            "base_clicks": 8950,
+            "base_conversions": 325,
+            "status": "mock" if os.getenv("MOCK_LINKEDIN", "true").lower() == "true" else "active"
+        }
+    ]
+    
+    result = []
+    for p in platforms:
+        spend = round(p["base_spend"] * base_multiplier * random.uniform(0.8, 1.2), 2)
+        impressions = int(p["base_impressions"] * base_multiplier * random.uniform(0.9, 1.1))
+        clicks = int(p["base_clicks"] * base_multiplier * random.uniform(0.85, 1.15))
+        conversions = int(p["base_conversions"] * base_multiplier * random.uniform(0.7, 1.3))
         
-        return result
+        ctr = round((clicks / impressions * 100), 2) if impressions > 0 else 0
+        roas = round((conversions * 100 / spend), 1) if spend > 0 else 0
         
-    except Exception as e:
-        logger.exception("Failed to get platform performance")
-        # Fallback to static mock data
-        return [
-            PlatformPerformance(
-                platform="google",
-                name="Google Ads",
-                spend=28450.25,
-                impressions=1847291,
-                clicks=89234,
-                conversions=2134,
-                ctr=4.83,
-                roas=3.5,
-                status="active"
-            ),
-            PlatformPerformance(
-                platform="reddit",
-                name="Reddit Ads", 
-                spend=8950.50,
-                impressions=567000,
-                clicks=23419,
-                conversions=789,
-                ctr=4.13,
-                roas=2.8,
-                status="mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
-            ),
-            PlatformPerformance(
-                platform="microsoft",
-                name="Microsoft Ads",
-                spend=6850.00,
-                impressions=383100,
-                clicks=13930,
-                conversions=489,
-                ctr=3.64,
-                roas=3.1,
-                status="mock" if os.getenv("MOCK_MICROSOFT", "true").lower() == "true" else "active"
-            ),
-            PlatformPerformance(
-                platform="linkedin",
-                name="LinkedIn Ads",
-                spend=5200.00,
-                impressions=245600,
-                clicks=8950,
-                conversions=325,
-                ctr=3.65,
-                roas=4.2,
-                status="mock" if os.getenv("MOCK_LINKEDIN", "true").lower() == "true" else "active"
-            )
-        ]
+        result.append(PlatformPerformance(
+            platform=p["platform"],
+            name=p["name"],
+            spend=spend,
+            impressions=impressions,
+            clicks=clicks,
+            conversions=conversions,
+            ctr=ctr,
+            roas=roas,
+            status=p["status"]
+        ))
+    
+    return result
 
 
 def get_mock_dashboard_summary() -> DashboardSummary:
