@@ -31,10 +31,24 @@ class Dashboard {
             this.handleLogout();
         });
 
+        // Microsoft Ads connection button
+        const connectMicrosoftBtn = document.getElementById('connectMicrosoft');
+        if (connectMicrosoftBtn) {
+            connectMicrosoftBtn.addEventListener('click', this.connectMicrosoftAds.bind(this));
+        }
+
         // Close user menu when clicking outside
         document.addEventListener('click', () => {
             this.closeUserMenu();
         });
+
+        // Check for connection success message
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('microsoft_connected') === 'true') {
+            this.showSuccessMessage('Microsoft Ads account connected successfully!');
+            // Remove the parameter from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     }
 
     showLoading() {
@@ -427,6 +441,44 @@ class Dashboard {
         
         setTimeout(() => {
             document.body.removeChild(error);
+        }, 5000);
+    }
+
+    async connectMicrosoftAds() {
+        try {
+            // Show loading state
+            const btn = document.getElementById('connectMicrosoft');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+            btn.disabled = true;
+
+            // Redirect to Microsoft OAuth flow
+            window.location.href = '/auth/microsoft/connect';
+        } catch (error) {
+            console.error('Microsoft connection error:', error);
+            this.showError('Failed to connect Microsoft Ads account');
+            
+            // Reset button
+            const btn = document.getElementById('connectMicrosoft');
+            btn.innerHTML = '<i class="fas fa-link"></i> Connect Account';
+            btn.disabled = false;
+        }
+    }
+
+    showSuccessMessage(message) {
+        // Create success notification
+        const success = document.createElement('div');
+        success.className = 'success-notification';
+        success.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()">×</button>
+        `;
+        document.body.appendChild(success);
+        
+        setTimeout(() => {
+            if (success.parentElement) {
+                success.remove();
+            }
         }, 5000);
     }
 }

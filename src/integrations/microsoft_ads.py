@@ -58,19 +58,49 @@ class MicrosoftAdsClient:
     async def authenticate(self) -> bool:
         """Authenticate with Microsoft Ads API using OAuth2."""
         try:
-            # For now, assume we have an access token
-            # In production, implement full OAuth2 flow
+            # Try to get access token from environment (set by OAuth flow)
             self.access_token = os.getenv("MICROSOFT_ADS_ACCESS_TOKEN")
             
             if not self.access_token:
+                # In production, retrieve from database based on user context
                 logger.warning("⚠️ Microsoft Ads access token not found. OAuth2 flow needed.")
+                logger.info("🔗 Use /auth/microsoft/connect to authenticate")
                 return False
             
-            logger.info("✅ Microsoft Ads API authentication ready")
-            return True
+            # Validate token by making a test API call
+            if await self.validate_token():
+                logger.info("✅ Microsoft Ads API authentication successful")
+                return True
+            else:
+                logger.error("❌ Microsoft Ads token validation failed")
+                return False
                     
         except Exception as e:
             logger.error(f"❌ Microsoft Ads authentication error: {e}")
+            return False
+    
+    async def validate_token(self) -> bool:
+        """Validate access token by making a test API call."""
+        if not self.access_token:
+            return False
+            
+        headers = {
+            'Authorization': f'Bearer {self.access_token}',
+            'DeveloperToken': self.developer_token,
+            'CustomerId': self.customer_id or '',
+            'Content-Type': 'application/json'
+        }
+        
+        try:
+            # Make a simple API call to validate token
+            # This would be a real Microsoft Ads API endpoint
+            test_url = f"{self.BASE_URL}/v13/CustomerManagement"
+            
+            async with self.session.get(test_url, headers=headers) as response:
+                return response.status < 400
+                
+        except Exception as e:
+            logger.error(f"❌ Token validation error: {e}")
             return False
     
     async def get_campaigns(self) -> List[Dict]:
