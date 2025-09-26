@@ -215,15 +215,14 @@ class BigQueryClient:
 
 
 def create_bigquery_client_from_env() -> BigQueryClient:
-    """Create BigQuery client from environment variables or Streamlit secrets.
+    """Create BigQuery client from environment variables.
 
-    Priority order:
-    1) Streamlit Cloud secrets with a service account dict under "gcp_service_account"
-       and project/dataset under either root or the "bigquery" section
-    2) Streamlit Cloud secrets with only project/dataset (use ADC if present)
-    3) Local env vars (.env) with optional GOOGLE_APPLICATION_CREDENTIALS path
+    Uses environment variables from .env file:
+    - GOOGLE_CLOUD_PROJECT or project_id: GCP project ID
+    - BIGQUERY_DATASET_ID: BigQuery dataset name (defaults to synter_analytics)
+    - GOOGLE_APPLICATION_CREDENTIALS: Path to service account JSON file (optional)
     """
-    import streamlit as st
+    
     from dotenv import load_dotenv
     from google.oauth2 import service_account as _sa
 
@@ -242,48 +241,6 @@ def create_bigquery_client_from_env() -> BigQueryClient:
         bq_client.dataset_ref = client.dataset(dataset_id)
         return bq_client
 
-    # Streamlit Cloud (secrets) — support both nested and root keys
-    if hasattr(st, "secrets") and st.secrets:
-        # Prefer nested section first
-        project_id = None
-        dataset_id = None
-        credentials = None
-
-        if "bigquery" in st.secrets:
-            section = st.secrets["bigquery"]
-            project_id = section.get("GOOGLE_CLOUD_PROJECT") or section.get(
-                "project_id"
-            )
-            dataset_id = section.get("BIGQUERY_DATASET_ID", "synter_analytics")
-        else:
-            project_id = st.secrets.get("GOOGLE_CLOUD_PROJECT") or st.secrets.get(
-                "project_id"
-            )
-            dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "synter_analytics")
-
-        # Service account JSON embedded as a dict in secrets (recommended)
-        # Streamlit convention: [gcp_service_account] ...
-        if "gcp_service_account" in st.secrets:
-            sa_info = dict(st.secrets["gcp_service_account"])  # Copy to plain dict
-            # Only use if required fields exist (avoid empty table in local dev)
-            required_keys = {"client_email", "private_key", "token_uri"}
-            if sa_info and required_keys.issubset(sa_info.keys()):
-                credentials = _sa.Credentials.from_service_account_info(
-                    sa_info,
-                    scopes=[
-                        "https://www.googleapis.com/auth/bigquery",
-                    ],
-                )
-                if not project_id:
-                    project_id = sa_info.get("project_id")
-
-        if project_id:
-            return _mk_client(
-                project_id=project_id,
-                dataset_id=dataset_id or "google_ads_data",
-                credentials=credentials,
-            )
-        # If no project_id found in secrets, fall through to env handling
 
     # Local development fallback (env vars)
     project_id = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("project_id")

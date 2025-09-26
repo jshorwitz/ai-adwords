@@ -58,12 +58,12 @@ class DashboardBigQueryService:
                         THEN CAST(conversions AS FLOAT64) * 100 / COALESCE(CAST(cost AS FLOAT64), CAST(cost_micros AS FLOAT64) / 1000000, 0)
                         ELSE 0 
                     END as roas
-                FROM `{self.project_id}.{self.dataset_id}.campaigns_performance`
-                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days DAY)
+                    FROM `{self.project_id}.{self.dataset_id}.campaigns_performance`
+                    WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL GREATEST(@days, 90) DAY)
+                    
+                    UNION ALL
                 
-                UNION ALL
-                
-                -- Multi-platform ad metrics (Reddit, Microsoft, LinkedIn)
+                -- Multi-platform ad metrics (Microsoft, LinkedIn)
                 SELECT 
                     platform,
                     date,
@@ -77,8 +77,8 @@ class DashboardBigQueryService:
                         ELSE 0 
                     END as roas
                 FROM `{self.project_id}.{self.dataset_id}.ad_metrics`
-                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days DAY)
-                  AND platform IN ('reddit', 'microsoft', 'linkedin')
+                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL GREATEST(@days, 90) DAY)
+                  AND platform IN ('microsoft', 'linkedin')
             ),
             current_period AS (
                 SELECT 
@@ -140,7 +140,7 @@ class DashboardBigQueryService:
                     FROM `{self.project_id}.{self.dataset_id}.ad_metrics`
                     WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days*2 DAY)
                       AND date < DATE_SUB(CURRENT_DATE(), INTERVAL @days DAY)
-                      AND platform IN ('reddit', 'microsoft', 'linkedin')
+                      AND platform IN ('microsoft', 'linkedin')
                 )
             )
             SELECT 
@@ -213,6 +213,81 @@ class DashboardBigQueryService:
             logger.error(f"Failed to get KPI summary from BigQuery: {e}")
             return None
 
+    async def get_time_series(self, days: int = 30) -> List[Dict]:
+        """Get time series data for charts."""
+        if not self.is_available():
+            return []
+        
+        try:
+            sql = f"""
+            WITH daily_data AS (
+                -- Google Ads data
+                SELECT 
+                    'google' as platform,
+                    date,
+                    COALESCE(
+                        CAST(cost AS FLOAT64),
+                        CAST(cost_micros AS FLOAT64) / 1000000,
+                        0
+                    ) as spend,
+                    CAST(impressions AS INT64) as impressions,
+                    CAST(clicks AS INT64) as clicks,
+                    CAST(conversions AS FLOAT64) as conversions
+                FROM `{self.project_id}.{self.dataset_id}.campaigns_performance`
+                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL GREATEST(@days, 90) DAY)
+                
+                UNION ALL
+                
+                -- Multi-platform data
+                SELECT 
+                    platform,
+                    date,
+                    CAST(spend AS FLOAT64) as spend,
+                    CAST(impressions AS INT64) as impressions,
+                    CAST(clicks AS INT64) as clicks,
+                    CAST(conversions AS FLOAT64) as conversions
+                FROM `{self.project_id}.{self.dataset_id}.ad_metrics`
+                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL GREATEST(@days, 90) DAY)
+                  AND platform IN ('microsoft', 'linkedin')
+            )
+            SELECT 
+                date,
+                SUM(spend) as daily_spend,
+                SUM(impressions) as daily_impressions,
+                SUM(clicks) as daily_clicks,
+                SUM(conversions) as daily_conversions
+            FROM daily_data
+            GROUP BY date
+            ORDER BY date
+            """
+            
+            job_config = bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter("days", "INT64", days)
+                ]
+            )
+            
+            df = self.bq_client.query(sql, job_config=job_config)
+            
+            if df.empty:
+                return []
+            
+            results = []
+            for _, row in df.iterrows():
+                results.append({
+                    "date": str(row['date']),
+                    "spend": float(row['daily_spend']) if row['daily_spend'] else 0.0,
+                    "impressions": int(row['daily_impressions']) if row['daily_impressions'] else 0,
+                    "clicks": int(row['daily_clicks']) if row['daily_clicks'] else 0,
+                    "conversions": int(row['daily_conversions']) if row['daily_conversions'] else 0
+                })
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Failed to get time series data: {e}")
+            return []
+
     async def get_platform_performance(self, days: int = 30) -> List[Dict]:
         """Get platform performance breakdown from BigQuery."""
         if not self.is_available():
@@ -235,7 +310,7 @@ class DashboardBigQueryService:
                     )) as spend,
                     SUM(CAST(conversions AS FLOAT64)) as conversions
                 FROM `{self.project_id}.{self.dataset_id}.campaigns_performance`
-                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days DAY)
+                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL GREATEST(@days, 90) DAY)
                 GROUP BY platform, name
                 
                 UNION ALL
@@ -254,8 +329,8 @@ class DashboardBigQueryService:
                     SUM(CAST(spend AS FLOAT64)) as spend,
                     SUM(CAST(conversions AS FLOAT64)) as conversions
                 FROM `{self.project_id}.{self.dataset_id}.ad_metrics`
-                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days DAY)
-                  AND platform IN ('reddit', 'microsoft', 'linkedin')
+                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL GREATEST(@days, 90) DAY)
+                  AND platform IN ('microsoft', 'linkedin')
                 GROUP BY platform, name
             )
             SELECT 
@@ -338,7 +413,7 @@ class DashboardBigQueryService:
                         ELSE 0 
                     END as roas
                 FROM `{self.project_id}.{self.dataset_id}.campaigns_performance`
-                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days DAY)
+                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL GREATEST(@days, 90) DAY)
                 GROUP BY date, platform
                 
                 UNION ALL
@@ -358,8 +433,8 @@ class DashboardBigQueryService:
                         ELSE 0 
                     END as roas
                 FROM `{self.project_id}.{self.dataset_id}.ad_metrics`
-                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days DAY)
-                  AND platform IN ('reddit', 'microsoft', 'linkedin')
+                WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL GREATEST(@days, 90) DAY)
+                  AND platform IN ('microsoft', 'linkedin')
                 GROUP BY date, platform
             )
             SELECT 

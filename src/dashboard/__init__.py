@@ -1,1 +1,1 @@
-"""Dashboard module for Google Ads analytics."""
+"""Modern web dashboard for multi-platform advertising analytics."""

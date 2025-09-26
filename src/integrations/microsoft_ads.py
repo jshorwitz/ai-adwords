@@ -103,10 +103,95 @@ class MicrosoftAdsClient:
             logger.error(f"❌ Token validation error: {e}")
             return False
     
-    async def get_campaigns(self) -> List[Dict]:
-        """Get list of campaigns using Bing Ads API."""
+    async def test_connection(self) -> Dict[str, any]:
+        """Test Microsoft Ads API connection."""
+        mock_mode = os.getenv("MOCK_MICROSOFT", "true").lower() == "true"
+        
+        if mock_mode:
+            return {
+                "connected": True,
+                "status": "Mock mode - simulated connection successful",
+                "mode": "mock"
+            }
+        
         if not self.access_token:
-            logger.warning("⚠️ No access token available")
+            return {
+                "connected": False,
+                "status": "No access token available",
+                "mode": "live",
+                "error": "OAuth2 authentication required"
+            }
+        
+        try:
+            # Test API connection
+            valid = await self.validate_token()
+            return {
+                "connected": valid,
+                "status": "Connected" if valid else "Authentication failed",
+                "mode": "live"
+            }
+        except Exception as e:
+            return {
+                "connected": False,
+                "status": "Connection failed",
+                "mode": "live",
+                "error": str(e)
+            }
+
+    async def get_campaigns(self, start_date: str = None, end_date: str = None) -> List[MicrosoftAdMetrics]:
+        """Get campaign metrics for date range."""
+        mock_mode = os.getenv("MOCK_MICROSOFT", "true").lower() == "true"
+        
+        if mock_mode:
+            logger.info("📊 Generating mock Microsoft Ads campaign data...")
+            
+            # Generate mock campaign data
+            mock_campaigns = []
+            campaign_names = [
+                "Microsoft Search - Brand",
+                "Microsoft Search - Generic",
+                "Microsoft Display - Remarketing"
+            ]
+            
+            import random
+            from datetime import datetime, timedelta
+            
+            if not start_date:
+                start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+            if not end_date:
+                end_date = datetime.now().strftime("%Y-%m-%d")
+            
+            for i, campaign_name in enumerate(campaign_names, 1):
+                random.seed(hash(campaign_name))  # Deterministic data
+                
+                impressions = random.randint(8000, 25000)
+                clicks = random.randint(300, 1200) 
+                spend = round(random.uniform(400, 2000), 2)
+                conversions = random.randint(15, 80)
+                
+                ctr = (clicks / impressions * 100) if impressions > 0 else 0
+                cpc = (spend / clicks) if clicks > 0 else 0
+                conversion_rate = (conversions / clicks * 100) if clicks > 0 else 0
+                
+                mock_campaigns.append(MicrosoftAdMetrics(
+                    campaign_id=f"ms_camp_{i}",
+                    campaign_name=campaign_name,
+                    impressions=impressions,
+                    clicks=clicks,
+                    spend=spend,
+                    conversions=conversions,
+                    ctr=round(ctr, 2),
+                    cpc=round(cpc, 2),
+                    conversion_rate=round(conversion_rate, 2),
+                    date=start_date
+                ))
+            
+            logger.info(f"✅ Generated {len(mock_campaigns)} mock Microsoft campaigns")
+            return mock_campaigns
+        
+        # Live API mode
+        if not self.access_token:
+            logger.warning("⚠️ No access token available for live Microsoft Ads API")
             return []
             
         headers = {

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .metric-card {
+            @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+        }
+        .metric-title {
+            @apply text-sm font-medium text-gray-500 uppercase tracking-wide;
+        }
+        .metric-value {
+            @apply text-3xl font-bold text-gray-900 mt-2;
+        }
+        .platform-card {
+            @apply bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-gray-900">Synter Analytics Dashboard</h1>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">{{ data.last_updated }}</span>
+                    {% if data.connected %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ✓ BigQuery Connected
+                    </span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        ⚠ Demo Data
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div class="metric-card">
+                <p class="metric-title">Total Spend</p>
+                <p class="metric-value">${{ "{:,.2f}".format(data.kpis.total_spend) }}</p>
+            </div>
+            <div class="metric-card">
+                <p class="metric-title">Total Clicks</p>
+                <p class="metric-value">{{ "{:,}".format(data.kpis.total_clicks) }}</p>
+            </div>
+            <div class="metric-card">
+                <p class="metric-title">Conversions</p>
+                <p class="metric-value">{{ "{:,}".format(data.kpis.total_conversions) }}</p>
+            </div>
+            <div class="metric-card">
+                <p class="metric-title">Avg CPA</p>
+                <p class="metric-value">${{ "{:.2f}".format(data.kpis.total_spend / data.kpis.total_conversions if data.kpis.total_conversions > 0 else 0) }}</p>
+            </div>
+        </div>
+
+        <!-- Platform Performance -->
+        <div class="bg-white shadow rounded-lg mb-8">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Platform Performance</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Performance metrics by advertising platform</p>
+            </div>
+            <div class="border-t border-gray-200">
+                <div class="grid grid-cols-1 gap-4 p-6 lg:grid-cols-3">
+                    {% for platform in data.platforms %}
+                    <div class="platform-card">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-lg font-semibold text-gray-900">{{ platform.name }}</h4>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                {% if platform.status == 'Active' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ platform.status }}
+                            </span>
+                        </div>
+                        
+                        <div class="mt-4 space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">Spend:</span>
+                                <span class="text-sm font-medium">${{ "{:,.2f}".format(platform.spend) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">Clicks:</span>
+                                <span class="text-sm font-medium">{{ "{:,}".format(platform.clicks) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">Conversions:</span>
+                                <span class="text-sm font-medium">{{ "{:,}".format(platform.conversions) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">CPA:</span>
+                                <span class="text-sm font-medium">${{ "{:.2f}".format(platform.cpa) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Spend by Platform Chart -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Spend by Platform</h3>
+                <canvas id="spendChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Performance Metrics Chart -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Conversion Rate by Platform</h3>
+                <canvas id="performanceChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="bg-white shadow rounded-lg mt-8">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Detailed Platform Metrics</h3>
+            </div>
+            <div class="border-t border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spend</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPA</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for platform in data.platforms %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ platform.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ "{:,.2f}".format(platform.spend) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ "{:,}".format(platform.clicks) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ "{:,}".format(platform.conversions) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ "{:.2f}".format(platform.cpa) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    {% if platform.status == 'Active' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ platform.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Platform spend chart
+        const spendCtx = document.getElementById('spendChart').getContext('2d');
+        const platformData = {{ data.platforms | tojson }};
+        
+        new Chart(spendCtx, {
+            type: 'doughnut',
+            data: {
+                labels: platformData.map(p => p.name),
+                datasets: [{
+                    data: platformData.map(p => p.spend),
+                    backgroundColor: [
+                        '#3B82F6', // Blue
+                        '#10B981', // Green  
+                        '#F59E0B', // Amber
+                        '#EF4444', // Red
+                        '#8B5CF6'  // Purple
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+
+        // Performance chart
+        const perfCtx = document.getElementById('performanceChart').getContext('2d');
+        
+        new Chart(perfCtx, {
+            type: 'bar',
+            data: {
+                labels: platformData.map(p => p.name),
+                datasets: [{
+                    label: 'Conversion Rate (%)',
+                    data: platformData.map(p => (p.conversions / p.clicks * 100).toFixed(2)),
+                    backgroundColor: '#3B82F6',
+                    borderColor: '#1D4ED8',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Conversion Rate (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>
