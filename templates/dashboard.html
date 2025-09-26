@@ -200,120 +200,70 @@
                     </div>
                 </div>
 
-                <!-- Platform Details -->
-                <div class="platform-grid">
-                    <!-- Google Ads -->
-                    <div class="platform-card google-ads">
-                        <div class="platform-header">
-                            <div class="platform-icon"><i class="fab fa-google"></i></div>
-                            <div class="platform-title">
-                                <h3>Google Ads</h3>
-                                <span class="platform-status" id="googleStatus">Active</span>
-                            </div>
+                <!-- Platform Summary Cards (Simplified) -->
+                <div class="platform-summary">
+                    <div class="platform-card-simple google-ads">
+                        <div class="platform-header-simple">
+                            <i class="fab fa-google"></i>
+                            <h3>Google Ads</h3>
+                            <span class="platform-status active" id="googleStatus">Live Data</span>
                         </div>
-                        <div class="platform-metrics">
-                            <div class="metric">
-                                <span class="metric-label">Spend</span>
+                        <div class="platform-metrics-simple">
+                            <div class="metric-row">
+                                <span class="metric-label">Spend:</span>
                                 <span class="metric-value" id="googleSpend">$0</span>
                             </div>
-                            <div class="metric">
-                                <span class="metric-label">Conversions</span>
+                            <div class="metric-row">
+                                <span class="metric-label">Conversions:</span>
                                 <span class="metric-value" id="googleConversions">0</span>
                             </div>
-                            <div class="metric">
-                                <span class="metric-label">ROAS</span>
-                                <span class="metric-value" id="googleROAS">0x</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">CTR</span>
-                                <span class="metric-value" id="googleCTR">0%</span>
+                            <div class="metric-row">
+                                <span class="metric-label">CPA:</span>
+                                <span class="metric-value" id="googleCPA">$0</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Reddit Ads -->
-                    <div class="platform-card reddit-ads">
-                        <div class="platform-header">
-                            <div class="platform-icon"><i class="fab fa-reddit"></i></div>
-                            <div class="platform-title">
-                                <h3>Reddit Ads</h3>
-                                <span class="platform-status" id="redditStatus">Mock Mode</span>
-                            </div>
+                    <div class="platform-card-simple microsoft-ads">
+                        <div class="platform-header-simple">
+                            <i class="fab fa-microsoft"></i>
+                            <h3>Microsoft Ads</h3>
+                            <span class="platform-status active" id="microsoftStatus">Generated Data</span>
                         </div>
-                        <div class="platform-metrics">
-                            <div class="metric">
-                                <span class="metric-label">Spend</span>
-                                <span class="metric-value" id="redditSpend">$0</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">Conversions</span>
-                                <span class="metric-value" id="redditConversions">0</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">ROAS</span>
-                                <span class="metric-value" id="redditROAS">0x</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">CTR</span>
-                                <span class="metric-value" id="redditCTR">0%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Microsoft Ads -->
-                    <div class="platform-card microsoft-ads">
-                        <div class="platform-header">
-                            <div class="platform-icon"><i class="fab fa-microsoft"></i></div>
-                            <div class="platform-title">
-                                <h3>Microsoft Ads</h3>
-                                <span class="platform-status" id="microsoftStatus">Mock Mode</span>
-                            </div>
-                        </div>
-                        <div class="platform-metrics">
-                            <div class="metric">
-                                <span class="metric-label">Spend</span>
+                        <div class="platform-metrics-simple">
+                            <div class="metric-row">
+                                <span class="metric-label">Spend:</span>
                                 <span class="metric-value" id="microsoftSpend">$0</span>
                             </div>
-                            <div class="metric">
-                                <span class="metric-label">Conversions</span>
+                            <div class="metric-row">
+                                <span class="metric-label">Conversions:</span>
                                 <span class="metric-value" id="microsoftConversions">0</span>
                             </div>
-                            <div class="metric">
-                                <span class="metric-label">ROAS</span>
-                                <span class="metric-value" id="microsoftROAS">0x</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">CTR</span>
-                                <span class="metric-value" id="microsoftCTR">0%</span>
+                            <div class="metric-row">
+                                <span class="metric-label">CPA:</span>
+                                <span class="metric-value" id="microsoftCPA">$0</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- LinkedIn Ads -->
-                    <div class="platform-card linkedin-ads">
-                        <div class="platform-header">
-                            <div class="platform-icon"><i class="fab fa-linkedin"></i></div>
-                            <div class="platform-title">
-                                <h3>LinkedIn Ads</h3>
-                                <span class="platform-status" id="linkedinStatus">Mock Mode</span>
-                            </div>
+                    <div class="platform-card-simple linkedin-ads">
+                        <div class="platform-header-simple">
+                            <i class="fab fa-linkedin"></i>
+                            <h3>LinkedIn Ads</h3>
+                            <span class="platform-status active" id="linkedinStatus">Generated Data</span>
                         </div>
-                        <div class="platform-metrics">
-                            <div class="metric">
-                                <span class="metric-label">Spend</span>
+                        <div class="platform-metrics-simple">
+                            <div class="metric-row">
+                                <span class="metric-label">Spend:</span>
                                 <span class="metric-value" id="linkedinSpend">$0</span>
                             </div>
-                            <div class="metric">
-                                <span class="metric-label">Conversions</span>
+                            <div class="metric-row">
+                                <span class="metric-label">Conversions:</span>
                                 <span class="metric-value" id="linkedinConversions">0</span>
                             </div>
-                            <div class="metric">
-                                <span class="metric-label">ROAS</span>
-                                <span class="metric-value" id="linkedinROAS">0x</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">CTR</span>
-                                <span class="metric-value" id="linkedinCTR">0%</span>
+                            <div class="metric-row">
+                                <span class="metric-label">CPA:</span>
+                                <span class="metric-value" id="linkedinCPA">$0</span>
                             </div>
                         </div>
                     </div>

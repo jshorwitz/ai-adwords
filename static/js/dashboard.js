@@ -347,22 +347,31 @@ class Dashboard {
     }
 
     updatePlatformCards(platforms) {
+        // Clear existing platform data
+        const platformElements = ['google', 'microsoft', 'linkedin'];
+        platformElements.forEach(p => {
+            document.getElementById(`${p}Spend`).textContent = '$0';
+            document.getElementById(`${p}Conversions`).textContent = '0';
+            document.getElementById(`${p}CPA`).textContent = '$0';
+        });
+        
         platforms.forEach(platform => {
             const prefix = platform.platform;
+            const cpa = platform.conversions > 0 ? platform.spend / platform.conversions : 0;
+            
             document.getElementById(`${prefix}Spend`).textContent = `$${this.formatNumber(platform.spend)}`;
             document.getElementById(`${prefix}Conversions`).textContent = this.formatNumber(platform.conversions);
-            document.getElementById(`${prefix}ROAS`).textContent = `${platform.roas}x`;
-            document.getElementById(`${prefix}CTR`).textContent = `${platform.ctr}%`;
+            document.getElementById(`${prefix}CPA`).textContent = `$${this.formatNumber(cpa, 2)}`;
 
             const statusElement = document.getElementById(`${prefix}Status`);
             
-            // Simple status display based on platform data
-            if (platform.status === 'active') {
-                statusElement.textContent = 'Active';
-                statusElement.className = 'platform-status connected';
+            // Update status based on data source
+            if (platform.platform === 'google') {
+                statusElement.textContent = 'Live Data';
+                statusElement.className = 'platform-status active';
             } else {
-                statusElement.textContent = 'Mock Mode';
-                statusElement.className = 'platform-status mock';
+                statusElement.textContent = 'Generated Data';
+                statusElement.className = 'platform-status active';
             }
         });
     }
