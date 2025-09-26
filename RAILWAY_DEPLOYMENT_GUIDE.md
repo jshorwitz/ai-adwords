@@ -15,8 +15,8 @@ The app is automatically deployed to Railway from the main branch:
    - Example: `ai-adwords-470622`
 
 2. **BIGQUERY_DATASET_ID**
-   - Set to `google_ads_data` (default)
-   - Or your custom dataset name
+   - Set to `synter_analytics` (default)
+   - This is where your Google Ads data is stored
 
 3. **GOOGLE_APPLICATION_CREDENTIALS**
    - Upload your BigQuery service account JSON file
@@ -48,7 +48,7 @@ The app is automatically deployed to Railway from the main branch:
 In Railway dashboard:
 1. Go to Variables tab
 2. Add `GOOGLE_CLOUD_PROJECT` = your-project-id
-3. Add `BIGQUERY_DATASET_ID` = google_ads_data
+3. Add `BIGQUERY_DATASET_ID` = synter_analytics
 4. Upload service account JSON file
 
 ### 2. Create BigQuery Tables
@@ -58,8 +58,8 @@ Run locally or via Railway shell:
 python -m src.cli setup-bigquery
 ```
 
-This creates:
-- `campaigns_performance` (Google Ads data)
+This creates tables in the `synter_analytics` dataset:
+- `campaigns_performance` (Google Ads data with cost_micros conversion)
 - `keywords_performance` (keyword data)
 - `ad_metrics` (multi-platform: Reddit, Microsoft, LinkedIn)
 

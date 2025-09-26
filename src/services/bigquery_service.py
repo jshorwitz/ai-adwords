@@ -39,17 +39,23 @@ class DashboardBigQueryService:
             # Multi-platform KPI query
             sql = f"""
             WITH platform_data AS (
-                -- Google Ads data
+                -- Google Ads data (handle cost_micros conversion)
                 SELECT 
                     'google' as platform,
                     date,
                     CAST(impressions AS INT64) as impressions,
                     CAST(clicks AS INT64) as clicks,
-                    CAST(cost AS FLOAT64) as spend,
+                    -- Handle both cost and cost_micros fields
+                    COALESCE(
+                        CAST(cost AS FLOAT64),
+                        CAST(cost_micros AS FLOAT64) / 1000000,
+                        0
+                    ) as spend,
                     CAST(conversions AS FLOAT64) as conversions,
                     CAST(ctr AS FLOAT64) as ctr,
                     CASE 
-                        WHEN CAST(cost AS FLOAT64) > 0 THEN CAST(conversions AS FLOAT64) * 100 / CAST(cost AS FLOAT64)
+                        WHEN COALESCE(CAST(cost AS FLOAT64), CAST(cost_micros AS FLOAT64) / 1000000, 0) > 0 
+                        THEN CAST(conversions AS FLOAT64) * 100 / COALESCE(CAST(cost AS FLOAT64), CAST(cost_micros AS FLOAT64) / 1000000, 0)
                         ELSE 0 
                     END as roas
                 FROM `{self.project_id}.{self.dataset_id}.campaigns_performance`
@@ -105,13 +111,18 @@ class DashboardBigQueryService:
                         ELSE 0 
                     END as prev_roas
                 FROM (
-                    -- Previous period data for comparison
+                    -- Previous period Google Ads data (handle cost_micros conversion)
                     SELECT 
                         'google' as platform,
                         date,
                         CAST(impressions AS INT64) as impressions,
                         CAST(clicks AS INT64) as clicks,
-                        CAST(cost AS FLOAT64) as spend,
+                        -- Handle both cost and cost_micros fields
+                        COALESCE(
+                            CAST(cost AS FLOAT64),
+                            CAST(cost_micros AS FLOAT64) / 1000000,
+                            0
+                        ) as spend,
                         CAST(conversions AS FLOAT64) as conversions
                     FROM `{self.project_id}.{self.dataset_id}.campaigns_performance`
                     WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days*2 DAY)
@@ -210,13 +221,18 @@ class DashboardBigQueryService:
         try:
             sql = f"""
             WITH platform_data AS (
-                -- Google Ads data
+                -- Google Ads data (handle cost_micros conversion)
                 SELECT 
                     'google' as platform,
                     'Google Ads' as name,
                     SUM(CAST(impressions AS INT64)) as impressions,
                     SUM(CAST(clicks AS INT64)) as clicks,
-                    SUM(CAST(cost AS FLOAT64)) as spend,
+                    -- Handle both cost and cost_micros fields
+                    SUM(COALESCE(
+                        CAST(cost AS FLOAT64),
+                        CAST(cost_micros AS FLOAT64) / 1000000,
+                        0
+                    )) as spend,
                     SUM(CAST(conversions AS FLOAT64)) as conversions
                 FROM `{self.project_id}.{self.dataset_id}.campaigns_performance`
                 WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL @days DAY)
@@ -301,18 +317,24 @@ class DashboardBigQueryService:
         try:
             sql = f"""
             WITH platform_daily AS (
-                -- Google Ads daily data
+                -- Google Ads daily data (handle cost_micros conversion)
                 SELECT 
                     date,
                     'google' as platform,
-                    SUM(CAST(cost AS FLOAT64)) as spend,
+                    -- Handle both cost and cost_micros fields
+                    SUM(COALESCE(
+                        CAST(cost AS FLOAT64),
+                        CAST(cost_micros AS FLOAT64) / 1000000,
+                        0
+                    )) as spend,
                     SUM(CAST(conversions AS FLOAT64)) as conversions,
                     CASE 
                         WHEN SUM(CAST(impressions AS INT64)) > 0 THEN SUM(CAST(clicks AS INT64)) / SUM(CAST(impressions AS INT64)) * 100
                         ELSE 0 
                     END as ctr,
                     CASE 
-                        WHEN SUM(CAST(cost AS FLOAT64)) > 0 THEN SUM(CAST(conversions AS FLOAT64)) * 100 / SUM(CAST(cost AS FLOAT64))
+                        WHEN SUM(COALESCE(CAST(cost AS FLOAT64), CAST(cost_micros AS FLOAT64) / 1000000, 0)) > 0 
+                        THEN SUM(CAST(conversions AS FLOAT64)) * 100 / SUM(COALESCE(CAST(cost AS FLOAT64), CAST(cost_micros AS FLOAT64) / 1000000, 0))
                         ELSE 0 
                     END as roas
                 FROM `{self.project_id}.{self.dataset_id}.campaigns_performance`

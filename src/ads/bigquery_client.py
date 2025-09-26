@@ -17,7 +17,7 @@ class BigQueryClient:
         self,
         project_id: str,
         credentials_path: str | None = None,
-        dataset_id: str = "google_ads_data",
+        dataset_id: str = "synter_analytics",
     ):
         """Initialize BigQuery client.
 
@@ -254,12 +254,12 @@ def create_bigquery_client_from_env() -> BigQueryClient:
             project_id = section.get("GOOGLE_CLOUD_PROJECT") or section.get(
                 "project_id"
             )
-            dataset_id = section.get("BIGQUERY_DATASET_ID", "google_ads_data")
+            dataset_id = section.get("BIGQUERY_DATASET_ID", "synter_analytics")
         else:
             project_id = st.secrets.get("GOOGLE_CLOUD_PROJECT") or st.secrets.get(
                 "project_id"
             )
-            dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "google_ads_data")
+            dataset_id = st.secrets.get("BIGQUERY_DATASET_ID", "synter_analytics")
 
         # Service account JSON embedded as a dict in secrets (recommended)
         # Streamlit convention: [gcp_service_account] ...
@@ -287,7 +287,7 @@ def create_bigquery_client_from_env() -> BigQueryClient:
 
     # Local development fallback (env vars)
     project_id = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("project_id")
-    dataset_id = os.getenv("BIGQUERY_DATASET_ID", "google_ads_data")
+    dataset_id = os.getenv("BIGQUERY_DATASET_ID", "synter_analytics")
     credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
     # Prefer file-based service account if provided and exists
