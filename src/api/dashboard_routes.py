@@ -218,13 +218,13 @@ async def get_time_series_data(
 @router.get("/demo/kpis", response_model=KPIData)
 async def get_demo_kpis():
     """Get demo KPI data (no authentication required)."""
-    return await get_kpi_data(30)
+    return await get_kpi_data(90)
 
 
 @router.get("/demo/platforms", response_model=List[PlatformPerformance])
 async def get_demo_platforms():
     """Get demo platform data (no authentication required)."""
-    return await get_platform_performance(30)
+    return await get_platform_performance(90)
 
 
 @router.get("/demo/summary", response_model=DashboardSummary)
