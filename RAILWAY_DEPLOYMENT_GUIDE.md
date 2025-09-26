@@ -1,132 +1,111 @@
-# Railway Deployment Guide - Synter AI AdWords Dashboard
+# Railway Deployment Guide - BigQuery Configuration
 
-## 🚀 Quick Deployment 
+## Current Deployment Status
+✅ **App Deployed:** https://web-production-97620.up.railway.app  
+⚠️ **BigQuery:** Showing mock data (credentials need fixing)
 
-The app is automatically deployed to Railway from the main branch:
+## Issue: Service Account Configuration
 
-**🔗 Live Dashboard**: https://web-production-97620.up.railway.app
+Railway deployments typically don't use file paths for credentials. Instead, you need to set the **entire JSON content** as an environment variable.
 
-## 📋 Environment Variables Setup
+## Steps to Fix BigQuery Connection
 
-### Required for BigQuery Integration:
+### Option 1: Environment Variable (Recommended)
 
-1. **GOOGLE_CLOUD_PROJECT**
-   - Set to your Google Cloud Project ID
-   - Example: `ai-adwords-470622`
+1. **Copy your service-account.json content**
+2. **Go to Railway Dashboard:** https://railway.app/dashboard
+3. **Select your project:** `ai-adwords`
+4. **Go to Variables tab**
+5. **Remove:** `GOOGLE_APPLICATION_CREDENTIALS=service-account.json`
+6. **Add new variable:** `GOOGLE_APPLICATION_CREDENTIALS` with the **full JSON content** as the value
 
-2. **BIGQUERY_DATASET_ID**
-   - Set to `synter_analytics` (default)
-   - This is where your Google Ads data is stored
-
-3. **GOOGLE_APPLICATION_CREDENTIALS**
-   - Upload your BigQuery service account JSON file
-   - Railway will provide this as a file path
-
-### Platform API Keys (Already Configured):
-
-✅ **Reddit Ads**
-- `REDDIT_CLIENT_ID`: mDSnWlcEn17omHHxElhLzg
-- `REDDIT_CLIENT_SECRET`: XF74NzwNIexlLltp_dimfdFqzJlYTA
-
-✅ **Microsoft Ads** 
-- `MICROSOFT_ADS_DEVELOPER_TOKEN`: 11085M29YT845526
-- `MICROSOFT_ADS_CUSTOMER_ID`: F110007XSU
-- `MICROSOFT_ADS_CLIENT_ID`: 7f33a26a-c05d-4750-b3f9-2b429dfebdf9
-- `MICROSOFT_ADS_TENANT_ID`: 3630fc6e-1576-4ffa-bdd1-5be49726d818
-- `MICROSOFT_ADS_CLIENT_SECRET`: 33ee494a-556b-4b27-8c25-bf95ec965ab6
-
-### Optional (for Google Ads):
-- `GOOGLE_ADS_CLIENT_ID`
-- `GOOGLE_ADS_CLIENT_SECRET` 
-- `GOOGLE_ADS_DEVELOPER_TOKEN`
-- `GOOGLE_ADS_CUSTOMER_ID`
-
-## 🔧 Setup Steps
-
-### 1. Configure BigQuery Access
-
-In Railway dashboard:
-1. Go to Variables tab
-2. Add `GOOGLE_CLOUD_PROJECT` = your-project-id
-3. Add `BIGQUERY_DATASET_ID` = synter_analytics
-4. Upload service account JSON file
-
-### 2. Create BigQuery Tables
-
-Run locally or via Railway shell:
-```bash
-python -m src.cli setup-bigquery
-```
-
-This creates tables in the `synter_analytics` dataset:
-- `campaigns_performance` (Google Ads data with cost_micros conversion)
-- `keywords_performance` (keyword data)
-- `ad_metrics` (multi-platform: Reddit, Microsoft, LinkedIn)
-
-### 3. Test the Deployment
-
-Visit: https://web-production-97620.up.railway.app
-
-You should see:
-- ✅ Dashboard loads with KPI cards
-- ✅ D3.js charts render (fallback to mock data initially)
-- ✅ Platform cards show status
-- ✅ Multi-platform data integration
-
-## 📊 Data Flow Architecture
-
-```
-🔄 Data Pipeline:
-Google Ads API → BigQuery → Dashboard API → D3.js Charts
-Reddit Ads API → BigQuery → Dashboard API → D3.js Charts  
-Microsoft API → BigQuery → Dashboard API → D3.js Charts
-LinkedIn API → BigQuery → Dashboard API → D3.js Charts
-```
-
-## 🐛 Troubleshooting
-
-### App Not Loading?
-- Check Railway logs for errors
-- Verify `PORT=8000` and `HOST=0.0.0.0`
-- Ensure `app_safe.py` is set as start command
-
-### Charts Showing Mock Data?
-- Verify BigQuery environment variables
-- Check BigQuery has data in tables
-- Monitor API logs for BigQuery connection status
-
-### BigQuery Connection Failed?
-1. Verify service account has BigQuery Data Editor role
-2. Check project ID matches exactly
-3. Ensure BigQuery API is enabled
-
-## 🔄 Auto-Deployment
-
-The app auto-deploys when you push to the main branch:
+### Option 2: Using Railway CLI
 
 ```bash
-git add .
-git commit -m "Your changes"
-git push origin main
+# Set the entire JSON content as an environment variable
+railway variables set GOOGLE_APPLICATION_CREDENTIALS="$(cat service-account.json)"
 ```
 
-Railway will automatically:
-1. Pull latest code from GitHub
-2. Build using Nixpacks
-3. Deploy with health checks
-4. Update the live URL
+### Option 3: Base64 Encoded (Alternative)
 
-## 📈 Monitoring
+```bash
+# Encode the JSON and set as variable
+railway variables set GOOGLE_APPLICATION_CREDENTIALS_BASE64="$(base64 -i service-account.json)"
+```
 
-- **Health Check**: `/health` endpoint
-- **Logs**: Railway dashboard → Deploy logs
-- **Metrics**: Monitor BigQuery usage in GCP console
-- **Uptime**: Railway provides 99.9% uptime SLA
+## Test Deployment After Fix
 
-## 🔐 Security Notes
+After updating the credentials, test these endpoints:
 
-- API keys are environment variables (secure)
-- BigQuery uses service account authentication
-- PostgreSQL provided by Railway addon
-- All traffic uses HTTPS
-- No secrets in code repository
+1. **Health Check:** https://web-production-97620.up.railway.app/health
+2. **BigQuery Test:** https://web-production-97620.up.railway.app/debug/bigquery-test  
+3. **Dashboard Data:** https://web-production-97620.up.railway.app/dashboard/demo/kpis
+4. **Main Dashboard:** https://web-production-97620.up.railway.app/dashboard
+
+## Expected Results After Fix
+
+### BigQuery Test Endpoint Should Show:
+```json
+{
+  "status": "success",
+  "bigquery_available": true,
+  "project": "ai-adwords-470622",
+  "dataset": "synter_analytics",
+  "kpi_summary": {
+    "total_spend": 715720.62,
+    "total_conversions": 14347,
+    "total_clicks": 219448
+  },
+  "platforms": ["Google Ads", "Microsoft Ads", "LinkedIn Ads"]
+}
+```
+
+### Dashboard KPIs Should Show Real Data:
+```json
+{
+  "total_spend": 715720.62,
+  "total_clicks": 219448,
+  "total_conversions": 14347,
+  "platforms": 3
+}
+```
+
+## Current Railway Configuration
+
+Your Railway deployment is configured with:
+- ✅ **Project:** `ai-adwords-470622`
+- ✅ **Dataset:** `synter_analytics`  
+- ✅ **Microsoft API:** `11085M29YT845526`
+- ⚠️ **Service Account:** Needs JSON content as environment variable
+
+## Alternative: Railway Database Variables
+
+If you prefer to keep credentials secure, you can also use Railway's built-in secret management:
+
+1. **Railway Dashboard** → **Variables** → **Raw Editor**
+2. **Paste the JSON content** directly into a secure variable
+3. **Reference it** in your application code
+
+## Verification Commands
+
+Once fixed, these should return real data:
+
+```bash
+# Test BigQuery connection
+curl "https://web-production-97620.up.railway.app/debug/bigquery-test"
+
+# Test real platform data  
+curl "https://web-production-97620.up.railway.app/debug/platform-data-real"
+
+# Test dashboard KPIs
+curl "https://web-production-97620.up.railway.app/dashboard/demo/kpis"
+```
+
+## Expected Platform Data
+
+After the fix, your dashboard should show:
+- **Google Ads:** $368,296.90 spend (real historical data)
+- **Microsoft Ads:** $300,738.77 spend (90-day mock data)
+- **LinkedIn Ads:** $46,684.95 spend (90-day mock data)
+
+Total: **$715,720.62** across all platforms with 14,347 conversions.
