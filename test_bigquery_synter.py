@@ -8,7 +8,7 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def test_bigquery_connection():
+async def test_bigquery_connection():
     """Test BigQuery connection to synter_analytics dataset."""
     try:
         from src.services.bigquery_service import get_bigquery_service
@@ -94,7 +94,7 @@ def test_bigquery_connection():
 
 async def run_async_test():
     """Run async BigQuery tests."""
-    return test_bigquery_connection()
+    return await test_bigquery_connection()
 
 if __name__ == "__main__":
     import asyncio
