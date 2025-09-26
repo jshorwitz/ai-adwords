@@ -20,12 +20,13 @@ RELOAD = "false"
 # Safety settings - disable real API calls initially
 MOCK_REDDIT = "false"
 MOCK_MICROSOFT = "false"
-MOCK_LINKEDIN = "true"
+MOCK_LINKEDIN = "false"
 ENABLE_REAL_MUTATES = "false"
 
 # Reddit API credentials
 REDDIT_CLIENT_ID = "mDSnWlcEn17omHHxElhLzg"
 REDDIT_CLIENT_SECRET = "XF74NzwNIexlLltp_dimfdFqzJlYTA"
+REDDIT_REDIRECT_URI = "https://web-production-97620.up.railway.app/auth/reddit/callback"
 
 # Microsoft Ads API credentials
 MICROSOFT_ADS_DEVELOPER_TOKEN = "11085M29YT845526"
@@ -33,6 +34,12 @@ MICROSOFT_ADS_CUSTOMER_ID = "F110007XSU"
 MICROSOFT_ADS_CLIENT_ID = "7f33a26a-c05d-4750-b3f9-2b429dfebdf9"
 MICROSOFT_ADS_TENANT_ID = "3630fc6e-1576-4ffa-bdd1-5be49726d818"
 MICROSOFT_ADS_CLIENT_SECRET = "33ee494a-556b-4b27-8c25-bf95ec965ab6"
+MICROSOFT_ADS_REDIRECT_URI = "https://web-production-97620.up.railway.app/auth/microsoft/callback"
+
+# LinkedIn Ads API credentials (set manually in Railway dashboard variables)
+# LINKEDIN_CLIENT_ID = "your_linkedin_client_id"
+# LINKEDIN_CLIENT_SECRET = "your_linkedin_client_secret" 
+LINKEDIN_REDIRECT_URI = "https://web-production-97620.up.railway.app/auth/linkedin/callback"
 
 # BigQuery configuration (set via Railway dashboard or CLI)
 # GOOGLE_CLOUD_PROJECT = "your-gcp-project-id"  

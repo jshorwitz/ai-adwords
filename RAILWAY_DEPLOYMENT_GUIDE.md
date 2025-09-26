@@ -4,7 +4,7 @@
 
 The app is automatically deployed to Railway from the main branch:
 
-**🔗 Live Dashboard**: https://astonishing-reflection-production.up.railway.app
+**🔗 Live Dashboard**: https://web-production-97620.up.railway.app
 
 ## 📋 Environment Variables Setup
 
@@ -65,7 +65,7 @@ This creates tables in the `synter_analytics` dataset:
 
 ### 3. Test the Deployment
 
-Visit: https://astonishing-reflection-production.up.railway.app
+Visit: https://web-production-97620.up.railway.app
 
 You should see:
 - ✅ Dashboard loads with KPI cards

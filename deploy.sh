@@ -10,7 +10,7 @@ git push origin main
 
 echo "✅ Code pushed to GitHub!"
 echo "🌐 Railway will auto-deploy from: https://github.com/jshorwitz/ai-adwords"
-echo "🎯 Dashboard URL: https://astonishing-reflection-production.up.railway.app"
+echo "🎯 Dashboard URL: https://web-production-97620.up.railway.app"
 
 echo ""
 echo "🔧 Next steps:"

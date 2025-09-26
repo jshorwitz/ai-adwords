@@ -213,6 +213,22 @@ try:
 except Exception as e:
     logger.warning(f"⚠️ OAuth routes failed to load: {e}")
 
+# Include LinkedIn OAuth routes
+try:
+    from src.api.linkedin_oauth_routes import router as linkedin_oauth_router
+    app.include_router(linkedin_oauth_router)
+    logger.info("✅ LinkedIn OAuth routes loaded")
+except Exception as e:
+    logger.warning(f"⚠️ LinkedIn OAuth routes failed to load: {e}")
+
+# Include Reddit OAuth routes
+try:
+    from src.api.reddit_oauth_routes import router as reddit_oauth_router
+    app.include_router(reddit_oauth_router)
+    logger.info("✅ Reddit OAuth routes loaded")
+except Exception as e:
+    logger.warning(f"⚠️ Reddit OAuth routes failed to load: {e}")
+
 # Include agent routes (safe)
 try:
     from src.api.agent_routes import router as agent_router  
@@ -228,6 +244,14 @@ try:
     logger.info("✅ Dashboard routes loaded")
 except Exception as e:
     logger.warning(f"⚠️ Dashboard routes failed to load: {e}")
+
+# Include platform status routes
+try:
+    from src.api.platform_status_routes import router as platform_status_router
+    app.include_router(platform_status_router)
+    logger.info("✅ Platform status routes loaded")
+except Exception as e:
+    logger.warning(f"⚠️ Platform status routes failed to load: {e}")
 
 # Include onboarding routes (safe)
 try:

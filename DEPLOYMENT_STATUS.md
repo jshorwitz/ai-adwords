@@ -66,11 +66,11 @@ railway up    # Deploy from current directory
 
 Once deployed, test these endpoints:
 
-1. **Homepage**: `https://your-app.railway.app/`
-2. **Dashboard**: `https://your-app.railway.app/dashboard`
-3. **Health Check**: `https://your-app.railway.app/health`
-4. **API Status**: `https://your-app.railway.app/api`
-5. **KPI Data**: `https://your-app.railway.app/dashboard/kpis`
+1. **Homepage**: `https://web-production-97620.up.railway.app/`
+2. **Dashboard**: `https://web-production-97620.up.railway.app/dashboard`
+3. **Health Check**: `https://web-production-97620.up.railway.app/health`
+4. **API Status**: `https://web-production-97620.up.railway.app/api`
+5. **KPI Data**: `https://web-production-97620.up.railway.app/dashboard/kpis`
 
 ## 🐛 Troubleshooting
 

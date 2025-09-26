@@ -120,7 +120,7 @@ MOCK_MICROSOFT=false                # Enable real API calls
 ### OAuth Setup:
 ```bash
 # Visit Microsoft OAuth endpoint to get access token
-https://your-app.com/auth/microsoft/connect
+https://web-production-97620.up.railway.app/auth/microsoft/connect
 ```
 
 ### Manual Sync:
@@ -248,10 +248,10 @@ LIMIT 20;
 python -m src.cli test-platform-apis
 
 # Check agent status
-curl https://your-app.com/agents/health
+curl https://web-production-97620.up.railway.app/agents/health
 
 # View recent ETL runs
-curl https://your-app.com/agents/status
+curl https://web-production-97620.up.railway.app/agents/status
 ```
 
 ### ETL Monitoring:
