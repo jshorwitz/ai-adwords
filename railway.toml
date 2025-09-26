@@ -42,8 +42,8 @@ MICROSOFT_ADS_REDIRECT_URI = "https://web-production-97620.up.railway.app/auth/m
 LINKEDIN_REDIRECT_URI = "https://web-production-97620.up.railway.app/auth/linkedin/callback"
 
 # BigQuery configuration (set via Railway dashboard or CLI)
-# GOOGLE_CLOUD_PROJECT = "your-gcp-project-id"  
-# BIGQUERY_DATASET_ID = "synter_analytics"
+GOOGLE_CLOUD_PROJECT = "ai-adwords-470622"  
+BIGQUERY_DATASET_ID = "synter_analytics"
 # GOOGLE_APPLICATION_CREDENTIALS will be set via service account JSON in Railway
 
 # Generated DATABASE_URL will be provided by Railway PostgreSQL addon
