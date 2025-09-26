@@ -15,6 +15,26 @@
                 <h1><i class="fas fa-brain"></i> Synter</h1>
                 <div class="brand-tagline">The AI Advertising Agency</div>
                 <div class="header-actions">
+                    <!-- Date Range Slider -->
+                    <div class="date-range-control">
+                        <label for="dateRange" class="date-label">
+                            <i class="fas fa-calendar-alt"></i> Date Range:
+                        </label>
+                        <select id="dateRange" class="date-select">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                        <div class="date-range-slider">
+                            <input type="range" id="daysSlider" min="7" max="90" value="30" step="1" class="slider">
+                            <div class="slider-labels">
+                                <span>7d</span>
+                                <span id="sliderValue">30d</span>
+                                <span>90d</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <button id="refreshBtn" class="btn btn-primary">
                         <i class="fas fa-sync-alt"></i> Refresh
                     </button>

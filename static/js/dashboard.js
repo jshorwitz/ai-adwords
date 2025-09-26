@@ -4,6 +4,7 @@ class Dashboard {
     constructor() {
         this.chart = null;
         this.refreshInterval = null;
+        this.currentDays = 30; // Default to 30 days
         this.init();
     }
 
@@ -20,6 +21,31 @@ class Dashboard {
             this.refreshData();
         });
 
+        // Date range controls
+        const dateSelect = document.getElementById('dateRange');
+        const daysSlider = document.getElementById('daysSlider');
+        const sliderValue = document.getElementById('sliderValue');
+
+        // Date select dropdown
+        dateSelect.addEventListener('change', (e) => {
+            const days = parseInt(e.target.value);
+            this.updateDateRange(days);
+        });
+
+        // Date range slider
+        daysSlider.addEventListener('input', (e) => {
+            const days = parseInt(e.target.value);
+            sliderValue.textContent = `${days}d`;
+            
+            // Update select dropdown to match
+            dateSelect.value = days;
+        });
+
+        daysSlider.addEventListener('change', (e) => {
+            const days = parseInt(e.target.value);
+            this.updateDateRange(days);
+        });
+
         // User menu functionality
         document.getElementById('userMenuBtn').addEventListener('click', (e) => {
             e.stopPropagation();
@@ -31,14 +57,26 @@ class Dashboard {
             this.handleLogout();
         });
 
-        // No OAuth connection buttons - platforms configured via environment variables
-
         // Close user menu when clicking outside
         document.addEventListener('click', () => {
             this.closeUserMenu();
         });
+    }
 
-        // Platform configuration is handled via environment variables
+    async updateDateRange(days) {
+        this.currentDays = days;
+        
+        // Update slider value display
+        document.getElementById('sliderValue').textContent = `${days}d`;
+        document.getElementById('daysSlider').value = days;
+        document.getElementById('dateRange').value = days;
+        
+        // Show loading and refresh data
+        this.showLoading();
+        await this.loadDashboardData();
+        this.hideLoading();
+        
+        console.log(`Dashboard updated to show last ${days} days`);
     }
 
     showLoading() {
@@ -124,7 +162,7 @@ class Dashboard {
 
     async fetchKPIData() {
         try {
-            const response = await fetch('/dashboard/kpis');
+            const response = await fetch(`/dashboard/demo/kpis?days=${this.currentDays}`);
             if (!response.ok) throw new Error('Failed to fetch KPI data');
             const data = await response.json();
             
@@ -161,7 +199,7 @@ class Dashboard {
 
     async fetchPlatformData() {
         try {
-            const response = await fetch('/dashboard/platforms');
+            const response = await fetch(`/dashboard/demo/platforms?days=${this.currentDays}`);
             if (!response.ok) throw new Error('Failed to fetch platform data');
             const platforms = await response.json();
             

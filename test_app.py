@@ -1,52 +1,89 @@
-"""Test the complete application stack."""
+"""Test app to verify BigQuery connection locally vs production."""
 
+import os
+import sys
 import asyncio
-import json
-from datetime import datetime
+from dotenv import load_dotenv
 
-from src.agents.runner import agent_registry, AgentRunner
-# Import agents to register them
-from src.agents import ingestors, transforms, activations, decisions
+load_dotenv()
+sys.path.append("src")
 
-
-async def test_agent_system():
-    """Test the agent system integration."""
-    
-    print("🧪 Testing AI AdWords Agent System")
-    print(f"📊 Registered agents: {len(agent_registry.list_agents())}")
-    
-    # List agents
-    agents = agent_registry.list_agents()
-    for agent in sorted(agents):
-        print(f"  • {agent}")
-    
-    print("\n🚀 Running test workflow...")
-    
-    # Test ingestor
-    runner = AgentRunner(agent_registry)
-    
-    result = await runner.run_agent(
-        agent_name="ingestor-reddit",
-        window={"start": "2025-01-09", "end": "2025-01-10"},
-        dry_run=True,
-    )
-    
-    print(f"✅ Reddit ingestor: {result.ok}")
-    print(f"📊 Records would process: {result.records_written}")
-    
-    # Test budget optimizer
-    result = await runner.run_agent(
-        agent_name="budget-optimizer",
-        dry_run=True,
-    )
-    
-    print(f"✅ Budget optimizer: {result.ok}")
-    if result.metrics:
-        for key, value in result.metrics.items():
-            print(f"  {key}: {value}")
-    
-    print("\n🎉 Agent system test completed successfully!")
-
+async def test_bigquery_connection():
+    """Test BigQuery connection and data retrieval."""
+    try:
+        print("🔍 Testing BigQuery Connection")
+        print("=" * 50)
+        
+        # Check environment variables
+        project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+        dataset_id = os.getenv("BIGQUERY_DATASET_ID") 
+        credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        
+        print(f"📊 Environment Configuration:")
+        print(f"  GOOGLE_CLOUD_PROJECT: {project_id}")
+        print(f"  BIGQUERY_DATASET_ID: {dataset_id}")
+        print(f"  GOOGLE_APPLICATION_CREDENTIALS: {'SET' if credentials else 'NOT SET'}")
+        
+        if credentials and os.path.exists(credentials):
+            print(f"  Credentials file exists: ✅")
+        elif credentials:
+            print(f"  Credentials: JSON content (Railway style)")
+        
+        # Test BigQuery service
+        from src.services.bigquery_service import get_bigquery_service
+        
+        bq_service = get_bigquery_service()
+        print(f"\n📊 BigQuery Service:")
+        print(f"  Available: {bq_service.is_available()}")
+        
+        if bq_service.is_available():
+            print(f"  Project: {bq_service.bq_client.project_id}")
+            print(f"  Dataset: {bq_service.bq_client.dataset_id}")
+            
+            # Test data retrieval
+            print(f"\n🔍 Testing Data Retrieval:")
+            
+            kpi_data = await bq_service.get_kpi_summary(90)
+            print(f"  KPI Data: {'✅ SUCCESS' if kpi_data else '❌ FAILED'}")
+            
+            if kpi_data:
+                print(f"    Total Spend: ${kpi_data['total_spend']:,.2f}")
+                print(f"    Total Conversions: {kpi_data['total_conversions']:,}")
+            
+            platform_data = await bq_service.get_platform_performance(90)
+            print(f"  Platform Data: {'✅ SUCCESS' if platform_data else '❌ FAILED'}")
+            
+            if platform_data:
+                print(f"    Platforms Found: {len(platform_data)}")
+                for p in platform_data:
+                    print(f"      {p['name']}: ${p['spend']:,.2f} spend")
+        else:
+            print("  ❌ BigQuery service not available")
+            
+            # Try to understand why
+            try:
+                from src.ads.bigquery_client import create_bigquery_client_from_env
+                bq_client = create_bigquery_client_from_env()
+                print(f"  Direct client project: {bq_client.project_id}")
+                print(f"  Direct client dataset: {bq_client.dataset_id}")
+            except Exception as e:
+                print(f"  Direct client error: {e}")
+        
+        return bq_service.is_available()
+        
+    except Exception as e:
+        print(f"❌ Test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 if __name__ == "__main__":
-    asyncio.run(test_agent_system())
+    success = asyncio.run(test_bigquery_connection())
+    
+    print("=" * 50)
+    if success:
+        print("✅ BigQuery connection test successful!")
+    else:
+        print("❌ BigQuery connection test failed!")
+        print("💡 For Railway deployment, ensure GOOGLE_APPLICATION_CREDENTIALS")
+        print("   contains the full JSON content as environment variable")
