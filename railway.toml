@@ -44,7 +44,7 @@ LINKEDIN_REDIRECT_URI = "https://web-production-97620.up.railway.app/auth/linked
 # BigQuery configuration (set via Railway dashboard or CLI)
 GOOGLE_CLOUD_PROJECT = "ai-adwords-470622"  
 BIGQUERY_DATASET_ID = "synter_analytics"
-# GOOGLE_APPLICATION_CREDENTIALS will be set via service account JSON in Railway
+GOOGLE_APPLICATION_CREDENTIALS = "service-account.json"
 
 # Generated DATABASE_URL will be provided by Railway PostgreSQL addon
 # Generated SECRET_KEY will be provided by Railway

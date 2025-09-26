@@ -133,3 +133,4 @@ logs/
 google-ads-*.json
 *credentials*.json
 *keys*.json
+service-account.json

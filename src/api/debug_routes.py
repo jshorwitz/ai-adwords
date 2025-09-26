@@ -1,68 +1,102 @@
-"""Debug API endpoints to check environment variables and configuration."""
+"""Debug routes for testing BigQuery connection in production."""
 
+import logging
 import os
 from fastapi import APIRouter
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/debug", tags=["debug"])
 
 
-@router.get("/env")
-async def get_environment_variables():
-    """Get current environment variables (for debugging)."""
-    
-    # Only show non-sensitive environment variables
-    env_vars = {
-        "MOCK_REDDIT": os.getenv("MOCK_REDDIT", "NOT_SET"),
-        "MOCK_MICROSOFT": os.getenv("MOCK_MICROSOFT", "NOT_SET"),
-        "MOCK_LINKEDIN": os.getenv("MOCK_LINKEDIN", "NOT_SET"), 
-        "ENABLE_REAL_MUTATES": os.getenv("ENABLE_REAL_MUTATES", "NOT_SET"),
-        "REDDIT_CLIENT_ID": "SET" if os.getenv("REDDIT_CLIENT_ID") else "NOT_SET",
-        "REDDIT_CLIENT_SECRET": "SET" if os.getenv("REDDIT_CLIENT_SECRET") else "NOT_SET",
-        "LOG_LEVEL": os.getenv("LOG_LEVEL", "NOT_SET"),
-        "HOST": os.getenv("HOST", "NOT_SET"),
-        "PORT": os.getenv("PORT", "NOT_SET"),
-    }
-    
-    return {
-        "environment_variables": env_vars,
-        "reddit_status_logic": {
-            "mock_reddit_value": os.getenv("MOCK_REDDIT", "true"),
-            "mock_reddit_lower": os.getenv("MOCK_REDDIT", "true").lower(),
-            "is_true_check": os.getenv("MOCK_REDDIT", "true").lower() == "true",
-            "final_status": "mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
+@router.get("/bigquery-test")
+async def test_bigquery_connection():
+    """Test BigQuery connection and configuration."""
+    try:
+        # Check environment variables
+        project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+        dataset_id = os.getenv("BIGQUERY_DATASET_ID")
+        credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        
+        env_status = {
+            "GOOGLE_CLOUD_PROJECT": project_id,
+            "BIGQUERY_DATASET_ID": dataset_id,
+            "GOOGLE_APPLICATION_CREDENTIALS": credentials_path,
+            "credentials_file_exists": os.path.exists(credentials_path) if credentials_path else False
         }
-    }
-
-
-@router.get("/platform-status")
-async def get_platform_status():
-    """Get platform status calculation."""
-    
-    reddit_status = "mock" if os.getenv("MOCK_REDDIT", "true").lower() == "true" else "active"
-    microsoft_status = "mock" if os.getenv("MOCK_MICROSOFT", "true").lower() == "true" else "active"
-    linkedin_status = "mock" if os.getenv("MOCK_LINKEDIN", "true").lower() == "true" else "active"
-    google_status = "active" if os.getenv("GOOGLE_ADS_CLIENT_ID") else "mock"
-    
-    return {
-        "platforms": {
-            "reddit": {
-                "status": reddit_status,
-                "mock_env": os.getenv("MOCK_REDDIT", "true"),
-                "has_credentials": bool(os.getenv("REDDIT_CLIENT_ID"))
-            },
-            "microsoft": {
-                "status": microsoft_status,
-                "mock_env": os.getenv("MOCK_MICROSOFT", "true"), 
-                "has_credentials": bool(os.getenv("MICROSOFT_CLIENT_ID"))
-            },
-            "linkedin": {
-                "status": linkedin_status,
-                "mock_env": os.getenv("MOCK_LINKEDIN", "true"), 
-                "has_credentials": bool(os.getenv("LINKEDIN_CLIENT_ID"))
-            },
-            "google": {
-                "status": google_status,
-                "has_credentials": bool(os.getenv("GOOGLE_ADS_CLIENT_ID"))
+        
+        # Test BigQuery service
+        from ..services.bigquery_service import get_bigquery_service
+        
+        bq_service = get_bigquery_service()
+        
+        if bq_service.is_available():
+            # Test a simple query
+            kpi_data = await bq_service.get_kpi_summary(90)
+            platform_data = await bq_service.get_platform_performance(90)
+            
+            return {
+                "status": "success",
+                "environment": env_status,
+                "bigquery_available": True,
+                "project": bq_service.bq_client.project_id,
+                "dataset": bq_service.bq_client.dataset_id,
+                "kpi_summary": {
+                    "total_spend": kpi_data["total_spend"],
+                    "total_conversions": kpi_data["total_conversions"],
+                    "total_clicks": kpi_data["total_clicks"]
+                },
+                "platforms_count": len(platform_data),
+                "platforms": [p["name"] for p in platform_data]
             }
+        else:
+            return {
+                "status": "bigquery_unavailable",
+                "environment": env_status,
+                "bigquery_available": False,
+                "error": "BigQuery service not available"
+            }
+            
+    except Exception as e:
+        return {
+            "status": "error",
+            "environment": {
+                "GOOGLE_CLOUD_PROJECT": os.getenv("GOOGLE_CLOUD_PROJECT"),
+                "BIGQUERY_DATASET_ID": os.getenv("BIGQUERY_DATASET_ID"),
+                "GOOGLE_APPLICATION_CREDENTIALS": os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            },
+            "error": str(e),
+            "error_type": type(e).__name__
         }
-    }
+
+
+@router.get("/platform-data-real")
+async def get_real_platform_data():
+    """Force get real platform data from BigQuery."""
+    try:
+        from ..services.bigquery_service import get_bigquery_service
+        
+        bq_service = get_bigquery_service()
+        
+        if not bq_service.is_available():
+            return {"error": "BigQuery service not available"}
+        
+        # Force real data query
+        platform_data = await bq_service.get_platform_performance(90)
+        kpi_data = await bq_service.get_kpi_summary(90)
+        
+        return {
+            "status": "success",
+            "source": "real_bigquery_data",
+            "kpis": kpi_data,
+            "platforms": platform_data,
+            "total_platforms": len(platform_data),
+            "total_spend": sum(p["spend"] for p in platform_data)
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "source": "bigquery_query_failed"
+        }
