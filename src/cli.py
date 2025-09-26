@@ -382,5 +382,116 @@ def consolidate_campaigns(
         raise typer.Exit(code=1) from e
 
 
+@app.command("sync-multi-platform")  
+def sync_multi_platform(
+    days_back: int = typer.Option(7, help="Number of days to sync"),
+    platform: str = typer.Option("all", help="Platform to sync (all, reddit, microsoft, linkedin)"),
+    dry_run: bool = typer.Option(False, help="Perform dry run without writing data")
+):
+    """Sync multi-platform advertising data to BigQuery synter_analytics."""
+    import asyncio
+    from src.etl.multi_platform_pipeline import MultiPlatformETLPipeline
+    from src.agents.multi_platform_agents import (
+        run_multi_platform_sync, run_reddit_sync, 
+        run_microsoft_sync, run_linkedin_sync
+    )
+
+    async def run_sync():
+        try:
+            print(f"🚀 Starting {platform} platform sync...")
+            print(f"📅 Days back: {days_back}")
+            print(f"🔄 Dry run: {dry_run}")
+            print("=" * 50)
+            
+            if platform == "all":
+                result = await run_multi_platform_sync(days_back, dry_run)
+            elif platform == "reddit":
+                result = await run_reddit_sync(days_back, dry_run)
+            elif platform == "microsoft":
+                result = await run_microsoft_sync(days_back, dry_run)
+            elif platform == "linkedin":
+                result = await run_linkedin_sync(days_back, dry_run)
+            else:
+                raise ValueError(f"Unknown platform: {platform}")
+            
+            print(f"📊 Sync Result: {result}")
+            
+            if result.get("status") == "success":
+                total_records = result.get("total_records", 0)
+                print(f"✅ Sync completed successfully!")
+                print(f"📈 Total records synced: {total_records}")
+            elif result.get("status") == "partial_failure":
+                print(f"⚠️ Sync completed with some errors")
+                errors = result.get("errors", [])
+                for error in errors:
+                    print(f"   ❌ {error}")
+            else:
+                print(f"❌ Sync failed: {result.get('error', 'Unknown error')}")
+
+        except Exception as ex:
+            print(f"❌ Multi-platform sync failed: {ex}")
+            import traceback
+            traceback.print_exc()
+
+    asyncio.run(run_sync())
+
+
+@app.command("test-platform-apis")
+def test_platform_apis():
+    """Test connectivity to all advertising platform APIs.""" 
+    import asyncio
+    from src.integrations.reddit_ads import RedditAdsClient
+    from src.integrations.microsoft_ads import MicrosoftAdsClient  
+    from src.integrations.linkedin_ads import LinkedInAdsClient
+
+    async def test_apis():
+        print("🧪 Testing Platform API Connections")
+        print("=" * 50)
+        
+        # Test Reddit Ads
+        print("\n🔴 Testing Reddit Ads API...")
+        try:
+            async with RedditAdsClient() as reddit_client:
+                # Test basic connection
+                accounts = await reddit_client.get_accounts()
+                print(f"✅ Reddit: Found {len(accounts)} accounts")
+                for account in accounts[:3]:  # Show first 3
+                    print(f"   📊 {account.get('name', account.get('id'))}")
+        except Exception as e:
+            print(f"❌ Reddit API error: {e}")
+        
+        # Test Microsoft Ads
+        print("\n🔵 Testing Microsoft Ads API...")
+        try:
+            async with MicrosoftAdsClient() as ms_client:
+                connection_status = await ms_client.test_connection()
+                if connection_status.get("connected"):
+                    print(f"✅ Microsoft: {connection_status.get('status')}")
+                else:
+                    print(f"⚠️ Microsoft: {connection_status.get('status')} (mode: {connection_status.get('mode')})")
+        except Exception as e:
+            print(f"❌ Microsoft API error: {e}")
+        
+        # Test LinkedIn Ads
+        print("\n🔗 Testing LinkedIn Ads API...")
+        try:
+            async with LinkedInAdsClient() as linkedin_client:
+                connection_status = await linkedin_client.test_connection()
+                if connection_status.get("connected"):
+                    print(f"✅ LinkedIn: {connection_status.get('status')}")
+                    user = connection_status.get('user')
+                    if user:
+                        print(f"   👤 User: {user}")
+                else:
+                    print(f"⚠️ LinkedIn: {connection_status.get('status')} (mode: {connection_status.get('mode')})")
+        except Exception as e:
+            print(f"❌ LinkedIn API error: {e}")
+        
+        print("\n" + "=" * 50)
+        print("✅ API testing completed!")
+
+    asyncio.run(test_apis())
+
+
 if __name__ == "__main__":
     app()
