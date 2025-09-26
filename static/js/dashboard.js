@@ -31,56 +31,14 @@ class Dashboard {
             this.handleLogout();
         });
 
-        // Platform connection buttons
-        const connectGoogleBtn = document.getElementById('connectGoogle');
-        if (connectGoogleBtn) {
-            connectGoogleBtn.addEventListener('click', this.connectGoogleAds.bind(this));
-        }
-
-        const connectRedditBtn = document.getElementById('connectReddit');
-        if (connectRedditBtn) {
-            connectRedditBtn.addEventListener('click', this.connectRedditAds.bind(this));
-        }
-
-        const connectMicrosoftBtn = document.getElementById('connectMicrosoft');
-        if (connectMicrosoftBtn) {
-            connectMicrosoftBtn.addEventListener('click', this.connectMicrosoftAds.bind(this));
-        }
-
-        const connectLinkedInBtn = document.getElementById('connectLinkedIn');
-        if (connectLinkedInBtn) {
-            connectLinkedInBtn.addEventListener('click', this.connectLinkedInAds.bind(this));
-        }
+        // No OAuth connection buttons - platforms configured via environment variables
 
         // Close user menu when clicking outside
         document.addEventListener('click', () => {
             this.closeUserMenu();
         });
 
-        // Check for connection success messages
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('reddit_connected') === 'true') {
-            this.showSuccessMessage('Reddit Ads account connected successfully!');
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        if (urlParams.get('microsoft_connected') === 'true') {
-            this.showSuccessMessage('Microsoft Ads account connected successfully!');
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        if (urlParams.get('linkedin_connected') === 'true') {
-            this.showSuccessMessage('LinkedIn Ads account connected successfully!');
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        
-        // Check for connection errors
-        if (urlParams.get('reddit_error')) {
-            this.showError(`Reddit connection failed: ${urlParams.get('reddit_error')}`);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        if (urlParams.get('linkedin_error')) {
-            this.showError(`LinkedIn connection failed: ${urlParams.get('linkedin_error')}`);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
+        // Platform configuration is handled via environment variables
     }
 
     showLoading() {
@@ -94,11 +52,10 @@ class Dashboard {
     async loadDashboardData() {
         try {
             // Load user info and dashboard data
-            const [userData, kpiData, platformData, platformStatus, agentData, activityData] = await Promise.all([
+            const [userData, kpiData, platformData, agentData, activityData] = await Promise.all([
                 this.fetchUserData(),
                 this.fetchKPIData(),
                 this.fetchPlatformData(),
-                this.fetchPlatformStatus(),
                 this.fetchAgentData(),
                 this.fetchActivityData()
             ]);
@@ -106,7 +63,7 @@ class Dashboard {
             // Update UI with data
             if (userData) this.updateUserInfo(userData);
             this.updateKPICards(kpiData);
-            this.updatePlatformCards(platformData, platformStatus);
+            this.updatePlatformCards(platformData);
             this.updateChart(platformData);
             this.updateAgentCards(agentData);
             this.updateActivityFeed(activityData);
@@ -271,16 +228,7 @@ class Dashboard {
         }
     }
 
-    async fetchPlatformStatus() {
-        try {
-            const response = await fetch('/platforms/status');
-            if (!response.ok) throw new Error('Failed to fetch platform status');
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching platform status:', error);
-            return null;
-        }
-    }
+    // Platform status now determined by environment configuration
 
     async fetchAgentData() {
         try {
@@ -360,7 +308,7 @@ class Dashboard {
         element.className = `kpi-change ${isPositive ? 'positive' : 'negative'}`;
     }
 
-    updatePlatformCards(platforms, platformStatus = null) {
+    updatePlatformCards(platforms) {
         platforms.forEach(platform => {
             const prefix = platform.platform;
             document.getElementById(`${prefix}Spend`).textContent = `$${this.formatNumber(platform.spend)}`;
@@ -369,38 +317,14 @@ class Dashboard {
             document.getElementById(`${prefix}CTR`).textContent = `${platform.ctr}%`;
 
             const statusElement = document.getElementById(`${prefix}Status`);
-            const connectBtn = document.getElementById(`connect${prefix.charAt(0).toUpperCase() + prefix.slice(1)}`);
             
-            // Use detailed platform status if available
-            let isConnected = platform.status === 'active';
-            let statusText = platform.status === 'active' ? 'Connected' : 'Not Connected';
-            let showConnectBtn = platform.status !== 'active';
-            
-            if (platformStatus && platformStatus[platform.platform]) {
-                const status = platformStatus[platform.platform];
-                isConnected = status.connected && !status.mock_mode;
-                statusText = status.status;
-                showConnectBtn = !status.connected;
-            }
-            
-            // Update status display
-            statusElement.textContent = statusText;
-            if (isConnected) {
+            // Simple status display based on platform data
+            if (platform.status === 'active') {
+                statusElement.textContent = 'Active';
                 statusElement.className = 'platform-status connected';
-            } else if (platformStatus && platformStatus[platform.platform]?.mock_mode) {
-                statusElement.className = 'platform-status mock';
             } else {
-                statusElement.className = 'platform-status not-connected';
-            }
-            
-            // Show/hide connect button
-            if (connectBtn) {
-                if (showConnectBtn) {
-                    connectBtn.style.display = 'inline-block';
-                    connectBtn.innerHTML = '<i class="fas fa-link"></i> Connect Account';
-                } else {
-                    connectBtn.style.display = 'none';
-                }
+                statusElement.textContent = 'Mock Mode';
+                statusElement.className = 'platform-status mock';
             }
         });
     }
@@ -554,110 +478,7 @@ class Dashboard {
         }, 5000);
     }
 
-    showInfo(message) {
-        // Create info notification
-        const info = document.createElement('div');
-        info.className = 'info-notification';
-        info.innerHTML = `
-            <i class="fas fa-info-circle"></i>
-            <span>${message}</span>
-            <button onclick="this.parentElement.remove()">×</button>
-        `;
-        document.body.appendChild(info);
-        
-        setTimeout(() => {
-            if (info.parentElement) {
-                info.remove();
-            }
-        }, 8000);
-    }
-
-    async connectGoogleAds() {
-        try {
-            // Show loading state
-            const btn = document.getElementById('connectGoogle');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-            btn.disabled = true;
-
-            // For Google Ads, redirect to OAuth or show instructions
-            this.showInfo('Google Ads connection requires OAuth setup. Please check the setup guide.');
-            
-            // Reset button after showing message
-            setTimeout(() => {
-                const btn = document.getElementById('connectGoogle');
-                btn.innerHTML = '<i class="fas fa-link"></i> Connect Account';
-                btn.disabled = false;
-            }, 3000);
-        } catch (error) {
-            console.error('Google connection error:', error);
-            this.showError('Failed to connect Google Ads account');
-            
-            // Reset button
-            const btn = document.getElementById('connectGoogle');
-            btn.innerHTML = '<i class="fas fa-link"></i> Connect Account';
-            btn.disabled = false;
-        }
-    }
-
-    async connectRedditAds() {
-        try {
-            // Show loading state
-            const btn = document.getElementById('connectReddit');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-            btn.disabled = true;
-
-            // For Reddit Ads, redirect to OAuth flow
-            window.location.href = '/auth/reddit/connect';
-        } catch (error) {
-            console.error('Reddit connection error:', error);
-            this.showError('Failed to connect Reddit Ads account');
-            
-            // Reset button
-            const btn = document.getElementById('connectReddit');
-            btn.innerHTML = '<i class="fas fa-link"></i> Connect Account';
-            btn.disabled = false;
-        }
-    }
-
-    async connectMicrosoftAds() {
-        try {
-            // Show loading state
-            const btn = document.getElementById('connectMicrosoft');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-            btn.disabled = true;
-
-            // Redirect to Microsoft OAuth flow
-            window.location.href = '/auth/microsoft/connect';
-        } catch (error) {
-            console.error('Microsoft connection error:', error);
-            this.showError('Failed to connect Microsoft Ads account');
-            
-            // Reset button
-            const btn = document.getElementById('connectMicrosoft');
-            btn.innerHTML = '<i class="fas fa-link"></i> Connect Account';
-            btn.disabled = false;
-        }
-    }
-
-    async connectLinkedInAds() {
-        try {
-            // Show loading state
-            const btn = document.getElementById('connectLinkedIn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-            btn.disabled = true;
-
-            // Redirect to LinkedIn OAuth flow
-            window.location.href = '/auth/linkedin/connect';
-        } catch (error) {
-            console.error('LinkedIn connection error:', error);
-            this.showError('Failed to connect LinkedIn Ads account');
-            
-            // Reset button
-            const btn = document.getElementById('connectLinkedIn');
-            btn.innerHTML = '<i class="fas fa-link"></i> Connect Account';
-            btn.disabled = false;
-        }
-    }
+    // OAuth connection methods removed - platforms configured via environment variables
 
     showSuccessMessage(message) {
         // Create success notification
